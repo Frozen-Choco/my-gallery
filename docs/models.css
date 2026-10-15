@@ -1,0 +1,15 @@
+.model-preview{position:relative;display:block;aspect-ratio:1.38;background:#cececb;border-radius:7px;overflow:hidden}
+.model-image-frame{display:grid;place-items:center;position:absolute;inset:0;width:100%;height:100%}
+.model-image{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain}
+.model-image-error{display:none;color:var(--muted);font-size:12px;padding:20px}
+.image-failed .model-image{display:none}.image-failed .model-image-error{display:block}
+.model-meta{display:flex;align-items:center;justify-content:space-between;margin:7px 0 13px;color:var(--muted);font-size:11px}
+.model-meta span{font-variant-numeric:tabular-nums}
+.model-downloads{display:flex;gap:8px;flex-wrap:wrap}
+.model-downloads a{display:flex;flex:1;align-items:center;justify-content:space-between;gap:12px;padding:9px 11px;border:1px solid #dce2d3;border-radius:5px;text-decoration:none;font-size:12px;background:#fdfefa;white-space:nowrap}
+.model-downloads a:hover{border-color:#98a48c;background:#edf1e5}.model-downloads a span{font-size:10px;color:var(--muted)}
+.model-angles{display:flex;justify-content:center;gap:6px;margin-top:12px}.model-angles button{border:1px solid var(--line);border-radius:5px;padding:7px 18px;font-size:11px}.model-angles button.active{background:#3e4937;color:white;border-color:#3e4937}
+.model-category{margin:0 0 18px;color:var(--muted);font-size:12px}.model-specs{margin:0 0 24px}.model-specs div{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--line);font-size:12px}.model-specs dt{color:var(--muted);flex-shrink:0}.model-specs dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}.model-specs small{display:block;font-size:9px;color:var(--muted);margin-top:4px}.model-file-note,.model-license{font-size:10px;color:var(--muted);line-height:1.8;margin:10px 0 0}.model-license{margin-top:20px}
+.catalog-status{font-size:12px;color:var(--muted);margin:20px 0 0;line-height:1.8}.catalog-status button{font-size:inherit;text-decoration:underline;padding:0 8px}
+.list-view .model-downloads{max-width:340px}.list-view .model-meta{max-width:340px}
+@media(max-width:760px){.model-detail .detail-notes{display:block}.model-detail .detail-visual{max-width:100%}.model-downloads a{padding:11px 12px}}
