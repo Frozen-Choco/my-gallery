@@ -1,0 +1,70 @@
+.motion-demo{--motion-bg:#ece7dc;--loop:2.8s;--phase:0s;position:relative;border:1px solid #dfe5d8;border-radius:7px;overflow:hidden;background:var(--motion-bg);container-type:inline-size}
+.motion-stage{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:1.38;overflow:hidden;padding:0;isolation:isolate;background:none;touch-action:manipulation}
+.motion-stage:focus-visible{outline-offset:-4px}
+.motion-art{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;perspective:700px}
+.motion-object{position:relative;display:block;width:24%;aspect-ratio:100/142;will-change:transform,opacity;filter:drop-shadow(0 1.5cqw 1.5cqw #62473315);animation-name:var(--effect,none),var(--reset,none);animation-duration:var(--loop);animation-timing-function:ease-in-out,steps(1,end);animation-delay:var(--phase);animation-iteration-count:infinite;animation-fill-mode:both}
+.chocolate-bar{display:block;width:100%;height:100%;overflow:visible;transform:rotate(12deg)}
+.motion-stack{display:flex;align-items:center;gap:6cqw;width:64%}.motion-stack>.motion-object{flex:1;min-width:0;width:auto}
+.detail-visual .motion-demo{width:100%}.motion-card .card-info{padding-top:14px}
+.motion-card .card-title h2:after{content:' ↗';font-size:10px;color:#8c9781;font-weight:400}.motion-card .motion-stage:hover{cursor:pointer}
+.mo-hover{--effect:motion-lift;--loop:3.2s}
+.mo-fade{--effect:motion-fade;--phase:-.6s}.mo-slide{--effect:motion-slide;--phase:-1.2s;--loop:3.2s}.mo-scale{--effect:motion-scale;--phase:-.3s;--loop:3.4s}
+.mo-bounce{--effect:motion-bounce;--phase:-.5s;--loop:2.4s}
+.mo-bounce .motion-object{transform-origin:50% 100%;animation-timing-function:linear}
+.mo-bounce .motion-stage:before{content:'';position:absolute;left:39%;top:calc(50% + 16cqw);width:22%;height:2cqw;border-radius:50%;background:#6f4b34;animation:motion-bounce-shadow var(--loop) linear var(--phase) infinite both}
+.mo-rotate{--effect:motion-rotate;--loop:3.2s;--phase:-.5s}
+.mo-flip{--effect:motion-flip;--phase:-.6s;--loop:3.6s}
+.mo-flip .motion-object{filter:none;transform-style:preserve-3d;will-change:transform}
+.chocolate-body{--depth:1.9cqw;position:absolute;inset:0;transform:rotateZ(12deg);transform-style:preserve-3d}
+.chocolate-front,.chocolate-back{position:absolute;inset:0;width:100%;height:100%;backface-visibility:hidden}
+.chocolate-front{transform:translateZ(calc(var(--depth)/2))}.chocolate-front .chocolate-bar{transform:none}
+.chocolate-back{transform:rotateY(180deg) translateZ(calc(var(--depth)/2))}
+.chocolate-side{position:absolute;top:3%;height:94%;width:var(--depth);background:linear-gradient(#754a35 0 52%,#bac8ce 52% 64%,#bd3034 64% 100%)}
+.side-left{left:8%;transform:translateX(-50%) rotateY(90deg)}.side-right{right:8%;transform:translateX(50%) rotateY(90deg)}
+.chocolate-edge{position:absolute;left:8%;width:84%;height:var(--depth)}.edge-top{top:3%;background:#b78159;transform:translateY(-50%) rotateX(90deg)}.edge-bottom{bottom:3%;background:#b92b30;transform:translateY(50%) rotateX(90deg)}
+.mo-stagger{--reset:motion-cut;--effect:motion-stagger;--loop:3.4s}.mo-stagger .motion-object{visibility:hidden;animation-fill-mode:forwards}.mo-stagger .motion-object:nth-child(2){animation-delay:.22s}.mo-stagger .motion-object:nth-child(3){animation-delay:.44s}
+.mo-pulse{--effect:motion-pulse;--loop:1.4s}.mo-shake{--effect:motion-shake;--phase:-.8s;--loop:2.6s}
+.mo-underline{--loop:2.2s}
+.mo-underline .motion-object:after{content:'';position:absolute;left:-35%;right:-35%;bottom:-5cqw;height:4px;background:#98735b;transform-origin:left;animation:motion-underline var(--loop) ease-in-out infinite both,motion-cut var(--loop) steps(1,end) infinite both}
+.mo-ripple{--loop:2.4s}
+.mo-ripple .motion-stage:after{content:'';position:absolute;left:var(--ripple-x,50%);top:var(--ripple-y,50%);width:8cqw;aspect-ratio:1;border-radius:50%;background:#b76c4933;border:2px solid #915f3b99;pointer-events:none;z-index:1;animation:motion-ripple var(--loop) ease-out infinite both}
+.motion-demo.is-paused .motion-object,.motion-demo.is-paused .motion-object:after,.motion-demo.is-paused .motion-stage:after{animation-play-state:paused}
+/* Finish, hold, then cut to a short blank interval. Reset has no visual tween. */
+@keyframes motion-cut{0%{visibility:visible}76%,100%{visibility:hidden}}
+@keyframes motion-lift{0%,8%,93%,100%{transform:translateY(0)}25%,75%{transform:translateY(-8cqw)}}
+@keyframes motion-fade{0%,10%,90%,100%{opacity:0}35%,65%{opacity:1}}
+/* Travel through the stage, wrapping only once completely outside its clip. */
+@keyframes motion-slide{0%,6%{transform:translateX(-70cqw)}28%,58%{transform:translateX(0)}90%,100%{transform:translateX(70cqw)}}
+/* Fill the stage before cutting back to a point; never shrink in reverse. */
+@keyframes motion-scale{
+ 0%,6%{transform:scale(.015);animation-timing-function:cubic-bezier(.2,.7,.2,1)}
+ 28%,55%{transform:scale(1);animation-timing-function:cubic-bezier(.55,0,1,.6)}
+ 86%{transform:scale(12);animation-timing-function:steps(1,end)}
+ 90%,100%{transform:scale(.015)}
+}
+@keyframes motion-bounce{
+ 0%,10%,90%,100%{transform:translateY(0) scale(1);animation-timing-function:cubic-bezier(.16,.65,.35,1)}
+ 28%{transform:translateY(-16cqw) scale(1);animation-timing-function:cubic-bezier(.65,0,.84,.35)}
+ 46%{transform:translateY(0) scale(1);animation-timing-function:ease-out}
+ 48%{transform:translateY(0) scale(1.07,.93);animation-timing-function:cubic-bezier(.16,.65,.35,1)}
+ 59%{transform:translateY(-6.5cqw) scale(1);animation-timing-function:cubic-bezier(.65,0,.84,.35)}
+ 70%{transform:translateY(0) scale(1);animation-timing-function:ease-out}
+ 72%{transform:translateY(0) scale(1.035,.965);animation-timing-function:cubic-bezier(.16,.65,.35,1)}
+ 79%{transform:translateY(-2.5cqw) scale(1);animation-timing-function:cubic-bezier(.65,0,.84,.35)}
+ 86%{transform:translateY(0) scale(1)}
+}
+@keyframes motion-bounce-shadow{0%,10%,46%,48%,70%,72%,86%,100%{transform:scaleX(1);opacity:.2}28%{transform:scaleX(.5);opacity:.07}59%{transform:scaleX(.72);opacity:.12}79%{transform:scaleX(.88);opacity:.16}}
+@keyframes motion-rotate{0%,15%{transform:rotate(0)}80%,100%{transform:rotate(360deg)}}
+@keyframes motion-flip{0%,10%{transform:rotateY(0) rotateX(-10deg)}40%,55%{transform:rotateY(180deg) rotateX(-10deg)}85%,100%{transform:rotateY(360deg) rotateX(-10deg)}}
+@keyframes motion-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}
+@keyframes motion-shake{0%,24%,58%,100%{transform:translateX(0)}30%{transform:translateX(-6cqw)}36%{transform:translateX(5cqw)}42%{transform:translateX(-3.6cqw)}48%{transform:translateX(2.3cqw)}54%{transform:translateX(-1cqw)}}
+@keyframes motion-stagger{0%,8%,100%{transform:translateY(10cqw)}36%,76%{transform:translateY(0)}77%{transform:translateY(10cqw)}}
+@keyframes motion-ripple{0%{opacity:0;transform:translate(-50%,-50%) scale(0)}8%{opacity:.85}48%,65%{opacity:0;transform:translate(-50%,-50%) scale(12)}66%,100%{opacity:0;transform:translate(-50%,-50%) scale(0)}}
+@keyframes motion-underline{0%,8%,100%{transform:scaleX(0)}36%,76%{transform:scaleX(1)}77%{transform:scaleX(0)}}
+.mo-gauge{--loop:2.6s}
+.motion-gauge{position:absolute;width:60%;height:auto;aspect-ratio:1;overflow:visible;transform:rotate(-90deg);fill:none;stroke-width:2.3}
+.gauge-track{stroke:#d5cbbd}.gauge-progress{stroke:#986344;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1}
+.gauge-progress{animation:motion-gauge var(--loop) ease-in-out infinite both,motion-cut var(--loop) steps(1,end) infinite both}
+.motion-demo.is-paused .gauge-progress,.motion-demo.is-paused .motion-stage:before{animation-play-state:paused}
+@keyframes motion-gauge{0%,8%,100%{stroke-dashoffset:1}40%,76%{stroke-dashoffset:0}77%{stroke-dashoffset:1}}
+@media(prefers-reduced-motion:reduce){.motion-demo *,.motion-demo *:after,.motion-demo *:before{animation:none!important;transition:none!important}.motion-demo .motion-object{transform:none!important;opacity:1!important;visibility:visible!important}.motion-demo .motion-stage:after{display:none}.mo-underline .motion-object:after{transform:scaleX(1);opacity:1}.gauge-progress{stroke-dashoffset:0;opacity:1}.mo-bounce .motion-stage:before{opacity:.2}}

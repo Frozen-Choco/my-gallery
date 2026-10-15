@@ -1,0 +1,5 @@
+import http from 'node:http';
+import {readFile} from 'node:fs/promises';
+import {resolve,extname,sep} from 'node:path';
+const root=resolve('docs');
+const server=http.createServer(async(req,res)=>{try{const requested=decodeURIComponent(new URL(req.url,'http://localhost').pathname);const pathname=requested.startsWith('/my-gallery/')?requested.slice('/my-gallery'.length):requested;const file=resolve(root,'.'+(pathname==='/'?'/index.html':pathname));if(!file.startsWith(root+sep)){res.writeHead(403);return res.end('Forbidden');}const body=await readFile(file);res.writeHead(200,{'Content-Type':({'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml'})[extname(file)]||'application/octet-stream','Cache-Control':'no-cache'});res.end(body);}catch{res.writeHead(404);res.end('Not found');}});const port=Number(process.env.PORT||4173);server.listen(port,'127.0.0.1',()=>console.log(`Local: http://127.0.0.1:${port}/my-gallery/`));

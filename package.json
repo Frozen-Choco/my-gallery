@@ -1,0 +1,10 @@
+{
+  "name": "my-gallery",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.mjs",
+    "check": "node --check docs/app.js && node --check docs/data.js && node --check docs/samples.js && node --check docs/games.js && node --check docs/motion.js && node --check docs/transitions.js"
+  }
+}

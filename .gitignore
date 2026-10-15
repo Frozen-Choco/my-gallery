@@ -1,0 +1,11 @@
+node_modules/
+.DS_Store
+*.tgz
+*.tar.gz
+.env
+.env.*
+/sites/
+/forma-*.jpg
+.openai/
+.codex/
+.agents/

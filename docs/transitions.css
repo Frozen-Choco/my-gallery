@@ -1,0 +1,51 @@
+/* Shared scenes and timing keep the switching effect directly comparable. */
+.transition-demo{position:relative;overflow:hidden;border:1px solid #dfe5d8;border-radius:7px;background:#f1d5aa;container-type:inline-size;--tr-time:6s;--reveal:tr-dissolve;--return:tr-dissolve-return}
+.transition-stage{aspect-ratio:16/10;display:block;cursor:pointer}
+.transition-art,.tr-scene,.tr-curtain{position:absolute;inset:0;display:block;pointer-events:none}
+.tr-scene svg{display:block;width:100%;height:100%}
+.tr-next,.tr-return{animation-duration:var(--tr-time);animation-timing-function:cubic-bezier(.4,0,.2,1);animation-iteration-count:infinite;animation-fill-mode:both;transform-origin:center}
+.tr-next{animation-name:var(--reveal)}.tr-return{animation-name:var(--return)}
+.tr-curtain{display:none;background:#17201f}
+.transition-demo.is-paused *{animation-play-state:paused!important}
+.tr-cut{--reveal:tr-cut-in;--return:tr-cut-return}
+.tr-wipe{--reveal:tr-wipe-in;--return:tr-wipe-return}
+.tr-wipe-up{--reveal:tr-up-in;--return:tr-up-return}
+.tr-iris{--reveal:tr-iris-in;--return:tr-iris-return}
+.tr-blinds{--reveal:tr-blinds-in;--return:tr-blinds-return}
+.tr-slide,.tr-push{--reveal:tr-slide-in;--return:tr-slide-return}
+.tr-zoom{--reveal:tr-zoom-in;--return:tr-zoom-return}
+.tr-blur{--reveal:tr-blur-in;--return:tr-blur-return}
+.tr-black,.tr-white{--reveal:tr-dip-in;--return:tr-dip-return}
+.tr-black .tr-curtain,.tr-white .tr-curtain{display:block;animation:tr-dip var(--tr-time) ease-in-out infinite both}
+.tr-white .tr-curtain{background:#fffaf0}
+.tr-push .tr-base{animation:tr-push-base var(--tr-time) cubic-bezier(.4,0,.2,1) infinite both}
+.tr-push .tr-next{animation-name:tr-push-next}
+@keyframes tr-push-base{0%,14%{transform:translateX(0)}28%,100%{transform:translateX(-100%)}}
+@keyframes tr-push-next{0%,14%{transform:translateX(100%)}28%,64%{transform:translateX(0)}78%,100%{transform:translateX(-100%)}}
+@keyframes tr-dip{0%,14%,28%,64%,78%,100%{opacity:0}20%,22%,70%,72%{opacity:1}}
+@keyframes tr-dip-in{0%{opacity:0;animation-timing-function:steps(1,end)}21%,100%{opacity:1}}
+@keyframes tr-dip-return{0%{opacity:0;animation-timing-function:steps(1,end)}71%,100%{opacity:1}}
+@keyframes tr-cut-in{0%{opacity:0;animation-timing-function:steps(1,end)}28%,100%{opacity:1}}
+@keyframes tr-cut-return{0%{opacity:0;animation-timing-function:steps(1,end)}78%,100%{opacity:1}}
+@keyframes tr-dissolve{0%,14%{opacity:0}28%,100%{opacity:1}}
+@keyframes tr-dissolve-return{0%,64%{opacity:0}78%,100%{opacity:1}}
+@keyframes tr-wipe-in{0%,14%{clip-path:inset(0 100% 0 0)}28%,100%{clip-path:inset(0 0 0 0)}}
+@keyframes tr-wipe-return{0%,64%{clip-path:inset(0 100% 0 0)}78%,100%{clip-path:inset(0 0 0 0)}}
+@keyframes tr-up-in{0%,14%{clip-path:inset(100% 0 0 0)}28%,100%{clip-path:inset(0 0 0 0)}}
+@keyframes tr-up-return{0%,64%{clip-path:inset(100% 0 0 0)}78%,100%{clip-path:inset(0 0 0 0)}}
+@keyframes tr-iris-in{0%,14%{clip-path:circle(0% at 50% 50%)}28%,100%{clip-path:circle(75% at 50% 50%)}}
+@keyframes tr-iris-return{0%,64%{clip-path:circle(0% at 50% 50%)}78%,100%{clip-path:circle(75% at 50% 50%)}}
+@keyframes tr-slide-in{0%,14%{transform:translateX(100%)}28%,100%{transform:translateX(0)}}
+@keyframes tr-slide-return{0%,64%{transform:translateX(100%)}78%,100%{transform:translateX(0)}}
+@keyframes tr-zoom-in{0%,14%{transform:scale(0)}28%,100%{transform:scale(1)}}
+@keyframes tr-zoom-return{0%,64%{transform:scale(0)}78%,100%{transform:scale(1)}}
+@keyframes tr-blur-in{0%,14%{opacity:0;filter:blur(14px)}28%,100%{opacity:1;filter:blur(0)}}
+@keyframes tr-blur-return{0%,64%{opacity:0;filter:blur(14px)}78%,100%{opacity:1;filter:blur(0)}}
+@keyframes tr-blinds-in{0%,14%{clip-path:polygon(0% 0.0000%,100% 0.0000%,100% 0.0000%,0% 0.0000%,0% 16.6667%,100% 16.6667%,100% 16.6667%,0% 16.6667%,0% 33.3333%,100% 33.3333%,100% 33.3333%,0% 33.3333%,0% 50.0000%,100% 50.0000%,100% 50.0000%,0% 50.0000%,0% 66.6667%,100% 66.6667%,100% 66.6667%,0% 66.6667%,0% 83.3333%,100% 83.3333%,100% 83.3333%,0% 83.3333%)}28%,100%{clip-path:polygon(0% 0.0000%,100% 0.0000%,100% 16.6667%,0% 16.6667%,0% 16.6667%,100% 16.6667%,100% 33.3333%,0% 33.3333%,0% 33.3333%,100% 33.3333%,100% 50.0000%,0% 50.0000%,0% 50.0000%,100% 50.0000%,100% 66.6667%,0% 66.6667%,0% 66.6667%,100% 66.6667%,100% 83.3333%,0% 83.3333%,0% 83.3333%,100% 83.3333%,100% 100.0000%,0% 100.0000%)}}
+@keyframes tr-blinds-return{0%,64%{clip-path:polygon(0% 0.0000%,100% 0.0000%,100% 0.0000%,0% 0.0000%,0% 16.6667%,100% 16.6667%,100% 16.6667%,0% 16.6667%,0% 33.3333%,100% 33.3333%,100% 33.3333%,0% 33.3333%,0% 50.0000%,100% 50.0000%,100% 50.0000%,0% 50.0000%,0% 66.6667%,100% 66.6667%,100% 66.6667%,0% 66.6667%,0% 83.3333%,100% 83.3333%,100% 83.3333%,0% 83.3333%)}78%,100%{clip-path:polygon(0% 0.0000%,100% 0.0000%,100% 16.6667%,0% 16.6667%,0% 16.6667%,100% 16.6667%,100% 33.3333%,0% 33.3333%,0% 33.3333%,100% 33.3333%,100% 50.0000%,0% 50.0000%,0% 50.0000%,100% 50.0000%,100% 66.6667%,0% 66.6667%,0% 66.6667%,100% 66.6667%,100% 83.3333%,0% 83.3333%,0% 83.3333%,100% 83.3333%,100% 100.0000%,0% 100.0000%)}}
+@media(prefers-reduced-motion:reduce){
+ .transition-demo *{animation:none!important}
+ .transition-demo .tr-base{transform:none}
+ .transition-demo .tr-next{opacity:1;filter:none;transform:none;clip-path:inset(0 0 0 50%)}
+ .transition-demo .tr-return,.transition-demo .tr-curtain{display:none}
+}
