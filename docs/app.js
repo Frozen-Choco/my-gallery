@@ -4,7 +4,7 @@ import {games,gameFilters,gameMarkup,gamePrompt} from './games.js';
 import {motions,motionFilters,motionMarkup,motionPrompt,mountMotions} from './motion.js';
 import {transitions,transitionFilters,transitionMarkup,transitionPrompt} from './transitions.js';
 import {loadModelCatalog,modelCard,modelDetail} from './models.js?v=20261016-viewer';
-import {mountModelDetail} from './model-viewer.js';
+import {mountModelDetail} from './model-viewer.js?v=20261016-wheel';
 let modelsState='idle',modelsPending=null,modelPage=1;
 const modelPageSize=60;
 const animatedPage=()=>page==='motion'||page==='transitions';

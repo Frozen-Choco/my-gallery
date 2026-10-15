@@ -7,6 +7,7 @@ function loadRenderer(){
  return rendererPromise??=import('https://cdn.jsdelivr.net/npm/@google/model-viewer@4.4.0/dist/model-viewer.min.js').catch(error=>{rendererPromise=null;throw error;});
 }
 export function mountModelDetail(root,model){
+ const stage=root.querySelector('[data-model-stage]');
  const host=root.querySelector('.model-viewer-host');
  const photo=root.querySelector('.model-photo');
  const status=root.querySelector('.model-viewer-status');
@@ -56,6 +57,16 @@ export function mountModelDetail(root,model){
    viewer.cameraOrbit='30deg 70deg auto';viewer.cameraTarget='auto auto auto';viewer.fieldOfView='auto';viewer.jumpCameraToGoal();
   }else if(button.hasAttribute('data-model-viewer-retry'))start();
  }
+ // Register a non-passive listener on the stable light-DOM surface before the
+ // async renderer mounts. Route each wheel input once, even before a browser
+ // updates its hit-testing region for the newly inserted shadow-DOM controls.
+ function wheel(event){
+  if(disposed||mode!=='3d'||state!=='ready'||!viewer||!event.deltaY)return;
+  const unit=event.deltaMode===1?18:event.deltaMode===2?stage.clientHeight:1;
+  event.preventDefault();event.stopPropagation();
+  viewer.zoom(-event.deltaY*unit/30);
+ }
+ stage.addEventListener('wheel',wheel,{capture:true,passive:false});
  root.addEventListener('click',click);start();
- return ()=>{disposed=true;generation++;clearTimeout(timer);root.removeEventListener('click',click);viewer?.remove();viewer=null;};
+ return ()=>{disposed=true;generation++;clearTimeout(timer);root.removeEventListener('click',click);stage.removeEventListener('wheel',wheel,true);viewer?.remove();viewer=null;};
 }
