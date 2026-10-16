@@ -9,3 +9,5 @@ node_modules/
 .openai/
 .codex/
 .agents/
+
+__pycache__/

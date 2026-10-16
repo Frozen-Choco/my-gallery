@@ -1,0 +1,47 @@
+name: Sync YouTube videos
+on:
+  schedule:
+    - cron: '23 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sync-youtube.yml'
+      - 'scripts/sync-youtube.py'
+permissions:
+  contents: write
+concurrency:
+  group: youtube-catalog
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Archive public videos
+        run: python3 scripts/sync-youtube.py
+      - name: Check for changes
+        id: changes
+        run: |
+          if ! git diff --quiet -- public/videos.json; then
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.changes.outputs.changed == 'true'
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Rebuild the public snapshot
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          npm ci
+          npm run build
+      - name: Save source and build
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add public/videos.json docs
+          git commit -m 'Update YouTube video archive'
+          git push origin HEAD:main

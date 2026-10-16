@@ -1,16 +1,10 @@
-import type {PersonalPage} from '../types';
-import {Icon, type IconName} from './Icon';
-
-const game = {title: '星屑のゆりかご', url: 'https://frozen-choco.itch.io/stardust-cradle'};
-const youtube = {name: '冷凍チョコ', url: 'https://www.youtube.com/channel/UCFH81ruwAfy-d2TzVRjsJFA'};
-const collections: {id: string; title: string; description: string; icon: IconName}[] = [
-  {id:'styles', title:'デザインスタイル', description:'配色・文字・レイアウト', icon:'grid'},
-  {id:'games', title:'ゲームUI', description:'ゲーム画面の表現', icon:'game'},
-  {id:'motion', title:'モーション', description:'要素の動き', icon:'motion'},
-  {id:'transitions', title:'トランジション', description:'画面の切り替え', icon:'layers'},
-  {id:'models', title:'3Dモデル', description:'ローポリモデル・ダウンロード', icon:'cube'},
-];
-
+import {useEffect, useState} from 'react';
+import type {PersonalPage, ExamplePage} from '../types';
+import {exampleCatalogs} from '../catalog';
+import {featuredPublications, publishedGames, youtube, type Publication, type Video} from '../catalog/publications';
+import {Icon} from './Icon';
+import {Specimen} from './Specimen';
+import {useVideos} from './useVideos';
 function GameArtwork() {
   return <div className="game-artwork" aria-hidden="true">
     <svg className="cradle-orbits" viewBox="0 0 640 320" fill="none">
@@ -24,29 +18,84 @@ function GameArtwork() {
   </div>;
 }
 
-function GameLink() {
-  return <a className="published-game" href={game.url} target="_blank" rel="noopener noreferrer" aria-label="星屑のゆりかごをitch.ioで見る（新しいタブ）">
-    <GameArtwork/>
-    <div className="published-game-info"><div><span className="link-platform">itch.io · テスト版</span><h2>{game.title}</h2><p>閲覧にはパスワードが必要です。</p></div><span className="outbound-arrow" aria-hidden="true">↗</span></div>
-  </a>;
-}
-function MediaLink() {
-  return <a className="media-link" href={youtube.url} target="_blank" rel="noopener noreferrer" aria-label="冷凍チョコのYouTubeチャンネル（新しいタブ）">
-    <span className="youtube-symbol" aria-hidden="true"><svg viewBox="0 0 48 34"><rect width="48" height="34" rx="10" fill="currentColor"/><path d="m20 10 12 7-12 7Z" fill="white"/></svg></span>
-    <div><span className="link-platform">YouTube</span><h2>{youtube.name}</h2><p>@frozen-choco-ch</p></div><span className="outbound-arrow" aria-hidden="true">↗</span>
-  </a>;
+function PublicationArtwork({item}: {item: Publication}) {
+  return item.thumbnail ? <img className="publication-image" src={item.thumbnail} alt="" loading="lazy"/> : <GameArtwork/>;
 }
 
+export function FeaturedBanner({items}: {items: Publication[]}) {
+  const [slide, setSlide] = useState({position:1, animate:true});
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const paused = hovered || focused;
+  const [hidden, setHidden] = useState(document.hidden);
+  const [reduced, setReduced] = useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
+  useEffect(() => {
+    const preference = matchMedia('(prefers-reduced-motion: reduce)');
+    const change = () => setReduced(preference.matches);
+    const visibility = () => setHidden(document.hidden);
+    preference.addEventListener('change', change); document.addEventListener('visibilitychange', visibility);
+    return () => {preference.removeEventListener('change', change); document.removeEventListener('visibilitychange', visibility);};
+  }, []);
+  useEffect(() => {
+    if (items.length < 2 || paused || hidden || reduced) return;
+    const timer = setInterval(() => setSlide(current => ({position:current.position + 1, animate:true})), 5000);
+    return () => clearInterval(timer);
+  }, [items.length, paused, hidden, reduced]);
+  useEffect(() => {
+    if (items.length < 2 || slide.position !== items.length + 1) return;
+    const timer = setTimeout(() => setSlide({position:1, animate:false}), reduced ? 0 : 700);
+    return () => clearTimeout(timer);
+  }, [slide.position, items.length, reduced]);
+  if (!items.length) return null;
+  const multiple = items.length > 1;
+  const index = multiple ? (slide.position - 1 + items.length) % items.length : 0;
+  const sequence = multiple ? [items[items.length-1], ...items, items[0]] : items;
+  return <section className="featured-banner" aria-label="新着作品" aria-roledescription="カルーセル"
+    onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+    onFocusCapture={() => setFocused(true)} onBlurCapture={event => {if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false);}}>
+    <div className="banner-window"><div className="banner-track" style={{transform:`translateX(-${multiple ? slide.position * 100 : 0}%)`, transition:slide.animate && !reduced ? undefined : 'none'}}
+      onTransitionEnd={event => {if (event.target === event.currentTarget && slide.position === items.length + 1) setSlide({position:1, animate:false});}}>
+      {sequence.map((item, position) => {
+        const active = multiple ? position === slide.position : true;
+        return <a key={`${position}-${item.id}`} className="banner-slide" href={item.url} target="_blank" rel="noopener noreferrer" tabIndex={active ? 0 : -1} aria-hidden={!active} aria-label={`${item.title}（新しいタブ）`}>
+          <PublicationArtwork item={item}/>{item.kind === 'video' && <span className="banner-title">{item.title}</span>}
+        </a>;
+      })}
+    </div></div>
+    {multiple && <div className="banner-dots">{items.map((item, position) => <button key={item.id} aria-label={`${item.title}を表示`} aria-pressed={index === position} onClick={() => setSlide({position:position+1, animate:true})}/>)}</div>}
+  </section>;
+}
+
+function YouTubeSymbol() {
+  return <svg viewBox="0 0 48 34" aria-hidden="true"><rect width="48" height="34" rx="10" fill="currentColor"/><path d="m20 10 12 7-12 7Z" fill="white"/></svg>;
+}
+function MediaPage({videos}: {videos: Video[]}) {
+  return <>
+    <a className="channel-link" href={youtube.url} target="_blank" rel="noopener noreferrer" aria-label="冷凍チョコのYouTubeチャンネル（新しいタブ）"><YouTubeSymbol/><span>{youtube.name}</span><span aria-hidden="true">↗</span></a>
+    <div className="video-grid">{videos.map(video => <a className="video-card" key={video.id} href={video.url} target="_blank" rel="noopener noreferrer"><PublicationArtwork item={video}/><h2>{video.title}</h2></a>)}</div>
+    {!videos.length && <p className="video-empty">まだ投稿動画はありません。</p>}
+  </>;
+}
+const destinations = [
+  {id:'works', title:'公開ゲーム'}, {id:'media', title:'メディア'},
+  {id:'styles', title:'デザインスタイル'}, {id:'games', title:'ゲームUI'},
+  {id:'motion', title:'モーション'}, {id:'transitions', title:'トランジション'}, {id:'models', title:'3Dモデル'},
+] as const;
+function PageThumbnail({id, videos}: {id: typeof destinations[number]['id']; videos: Video[]}) {
+  if (id === 'works') return publishedGames[0] ? <PublicationArtwork item={publishedGames[0]}/> : <Icon name="game"/>;
+  if (id === 'media') return videos[0] ? <PublicationArtwork item={videos[0]}/> : <span className="media-thumbnail"><YouTubeSymbol/></span>;
+  if (id === 'models') return <img className="model-thumbnail" src="https://raw.githubusercontent.com/Frozen-Choco/low-poly-models/main/assets/furniture/dining_chair/preview.jpg" alt="" loading="lazy"/>;
+  const page: ExamplePage = id;
+  const item = exampleCatalogs[page].items[page === 'styles' ? 1 : page === 'motion' ? 5 : 0];
+  return <Specimen page={page} item={item} detail paused/>;
+}
 export function PersonalPages({page}: {page: PersonalPage}) {
-  if (page === 'works') return <div className="published-games"><GameLink/></div>;
-  if (page === 'media') return <div className="media-links"><MediaLink/></div>;
+  const videos = useVideos();
+  if (page === 'works') return <div className="published-games">{publishedGames.map(game => <a key={game.id} className="published-game" href={game.url} target="_blank" rel="noopener noreferrer" aria-label={`${game.title}をitch.ioで見る（新しいタブ）`}><PublicationArtwork item={game}/><h2>{game.title}<span aria-hidden="true">↗</span></h2></a>)}</div>;
+  if (page === 'media') return <MediaPage videos={videos}/>;
+  const featured = featuredPublications(videos);
   return <div className="home-page">
-    <p className="home-intro">冷凍チョコの作品と、創作に使える見本をまとめています。</p>
-    <div className="home-destinations">
-      <a className="home-game" href="#works"><GameArtwork/><div className="home-destination-label"><h2>公開ゲーム</h2><Icon name="arrow"/></div></a>
-      <a className="home-media" href="#media"><span className="home-media-art" aria-hidden="true"><Icon name="video"/></span><div className="home-destination-label"><h2>メディア</h2><Icon name="arrow"/></div></a>
-    </div>
-    <h2 className="home-collection-title">見本</h2>
-    <div className="home-collections">{collections.map(item => <a key={item.id} href={`#${item.id}`} className="collection-link"><Icon name={item.icon}/><div><h3>{item.title}</h3><p>{item.description}</p></div><span aria-hidden="true">↗</span></a>)}</div>
+    <FeaturedBanner key={featured.map(item => item.id).join(',')} items={featured}/>
+    <div className="page-links">{destinations.map(item => <a key={item.id} href={`#${item.id}`} className="page-link"><div className="page-thumbnail" aria-hidden="true"><PageThumbnail id={item.id} videos={videos}/></div><h2>{item.title}<Icon name="arrow"/></h2></a>)}</div>
   </div>;
 }

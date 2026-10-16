@@ -6,6 +6,8 @@ import {App} from '../App';
 import {FakeViewer} from './setup';
 import {trackDetail, trackDownload} from '../analytics';
 
+vi.mock('../components/useVideos', () => ({useVideos: () => []}));
+
 vi.mock('../analytics', () => ({trackPage:vi.fn(), trackDetail:vi.fn(), trackDownload:vi.fn()}));
 
 function renderApp() {return render(<StrictMode><App/></StrictMode>);}
@@ -17,7 +19,7 @@ describe('catalog interaction after the React migration', () => {
     const user = userEvent.setup(); renderApp();
     expect(screen.getByRole('heading', {name:'ホーム', level:1})).toBeTruthy();
     expect(screen.queryByRole('searchbox')).toBeNull();
-    expect(screen.getByRole('link', {name:/デザインスタイル 配色/}).getAttribute('href')).toBe('#styles');
+    expect(screen.getByRole('link', {name:'デザインスタイル'}).getAttribute('href')).toBe('#styles');
     await user.click(screen.getByRole('button', {name:'デザインスタイル'}));
     expect(location.hash).toBe('#styles');
     expect(document.querySelectorAll('.style-card').length).toBe(16);
