@@ -12,9 +12,23 @@
   background: var(--cream);
   border-right-color: #e8d9b6;
   color: #574037;
+  padding-top: 64px;
 }
-.sidebar-close { position: absolute; top: 4px; right: 8px; width: 36px; height: 36px; }
-.sidebar-close:hover { background: #f5e4be; }
+.sidebar-close {
+  position: absolute; top: 10px; right: 12px;
+  width: auto; height: 44px; padding: 0 12px; gap: 7px;
+  border: 1px solid #c7aa83; border-radius: 10px;
+  background: #fffaf0; color: #64412e; font-size: 12px; font-weight: 700;
+}
+.sidebar-close svg, .site-header .menu-open svg { width: 24px; height: 24px; stroke-width: 2; }
+.sidebar-close:hover { background: #f5e4be; border-color: #906b48; }
+.site-header .menu-open {
+  width: 44px; height: 44px; flex-shrink: 0; margin-left: 0;
+  border: 1px solid #fff8e7; border-radius: 10px;
+  background: #fff3d6; color: #941936;
+}
+.site-header .menu-open:hover { background: #fffdf5; }
+.site-header .section-title { gap: 14px; }
 .nav-item { font-family: var(--heading-font); font-weight: 700; }
 .nav-item:hover { background: #f5e4be; }
 .nav-item.active { background: #f4d9cf; color: #9d1c3c; }
@@ -25,7 +39,7 @@
 .site-header .catalog-heading {
   max-width: 1500px;
   margin: 0 auto;
-  padding: 28px var(--content-gutter);
+  padding: 24px var(--content-gutter);
   min-height: var(--header-height);
 }
 .site-header h1 {
@@ -35,7 +49,6 @@
   letter-spacing: .04em;
   line-height: 1.5;
 }
-.site-header .icon-button:hover { background: #fff8e724; }
 .site-header :focus-visible { outline-color: #fff8e7; }
 .workspace main { padding-top: 28px; }
 #main, .results-bar { scroll-margin-top: calc(var(--header-height) + 12px); }
@@ -51,7 +64,7 @@
 @media (max-width: 1150px) { :root { --content-gutter: 27px; } }
 @media (max-width: 760px) {
   :root { --content-gutter: 22px; --header-height: 80px; }
-  .site-header .catalog-heading { min-height: var(--header-height); padding-block: 21px; gap: 17px; }
+  .site-header .catalog-heading { min-height: var(--header-height); padding-block: 18px; gap: 17px; }
   .site-header h1 { font-size: 24px; }
   .workspace main { padding-top: 24px; }
 }

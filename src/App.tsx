@@ -116,13 +116,13 @@ export function App() {
     <a href="#main" className="skip">コンテンツへ移動</a>
     {mobile && sidebarOpen && <button type="button" className="sidebar-backdrop" aria-label="メニューの外側を押して閉じる" onClick={() => changeSidebar(false)}/>}
     <aside className={`sidebar${sidebarVisible ? ' open' : ''}`} id="sidebar" inert={!sidebarVisible}>
-      {sidebarVisible && <button ref={sidebarCloseRef} type="button" className="icon-button sidebar-close" aria-label="メニューを閉じる" aria-expanded={true} aria-controls="sidebar" onClick={() => changeSidebar(false)}><Icon name="collapse"/></button>}
+      {sidebarVisible && <button ref={sidebarCloseRef} type="button" className="icon-button sidebar-close" aria-label="メニューを閉じる" aria-expanded={true} aria-controls="sidebar" onClick={() => changeSidebar(false)}><Icon name="collapse"/><span>閉じる</span></button>}
       <Brand/>
       <nav aria-label="メインナビゲーション">{navigation.map(nav => <button key={nav.page} className={`nav-item${route === nav.page ? ' active' : ''}${nav.page === 'styles' ? ' nav-library-start' : ''}`} data-page={nav.page} aria-current={route === nav.page ? 'page' : undefined} onClick={() => navigate(nav.page)}><span><Icon name={nav.icon}/></span><span>{titles[nav.page]}</span></button>)}</nav>
       <a className="privacy-link" href="./privacy.html">プライバシー</a>
     </aside>
     <div className={`workspace${!mobile && !desktopSidebarOpen ? ' sidebar-collapsed' : ''}`}><header className="site-header">
-      <div className="catalog-heading"><div className="section-title">{!sidebarVisible && <button ref={menuRef} id="menu-button" className="icon-button" aria-label="メニューを開く" aria-expanded={false} aria-controls="sidebar" onClick={() => changeSidebar(true)}><Icon name="menu"/></button>}<h1 id="catalog-title">{titles[route]}</h1></div>
+      <div className="catalog-heading"><div className="section-title">{!sidebarVisible && <button ref={menuRef} id="menu-button" className="icon-button menu-open" title="メニューを開く" aria-label="メニューを開く" aria-expanded={false} aria-controls="sidebar" onClick={() => changeSidebar(true)}><Icon name="menu"/></button>}<h1 id="catalog-title">{titles[route]}</h1></div>
       </div>
       </header><main id="main"><section className="catalog" aria-labelledby="catalog-title">
       {personalPage ? <PersonalPages page={personalPage}/> : <>
