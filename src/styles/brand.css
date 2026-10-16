@@ -6,13 +6,16 @@
   flex-shrink: 0;
   width: 180px;
   max-width: 100%;
-  height: auto;
-  aspect-ratio: 400 / 165;
+  height: 120px;
   margin: 0 auto 18px;
   text-decoration: none;
 }
 .brand .brand-art { display: block; width: 100%; height: 100%; }
-.brand-frozen { font-family: 'Potta One', 'Noto Sans JP', sans-serif; font-weight: 400; font-size: 68px; }
+.brand-frozen { font-family: 'Potta One', 'Noto Sans JP', sans-serif; font-weight: 400; }
+.brand-header .brand-frozen { font-size: 68px; }
+.brand-outline-strokes { stroke: #fff3d6; }
+.brand-outline-fill { fill: #fff3d6; }
+.brand-ice-outlined { stroke: #fff3d6; stroke-width: 8px; stroke-linejoin: round; paint-order: stroke fill; }
 .brand-ice { fill: #487c90; }
 .brand-chocolate { fill: var(--brand-chocolate); }
 .brand-chocolate-strokes { stroke: var(--brand-chocolate); }
@@ -20,7 +23,8 @@
 .brand-header .brand-gallery { fill: #fff3d6; }
 @media (forced-colors: active) {
   .brand-ice, .brand-chocolate, .brand-gallery { fill: LinkText; }
-  .brand-chocolate-strokes { stroke: LinkText; }
+  .brand-chocolate-strokes, .brand-side-gallery { stroke: LinkText; }
   .brand-facets { display: none; }
-  .brand-outlined { filter: none; }
+  .brand-outline-strokes { display: none; }
+  .brand-ice-outlined { stroke: none; }
 }

@@ -43,7 +43,7 @@ describe('catalog interaction after the React migration', () => {
     expect(document.activeElement).toBe(screen.getByRole('button', {name:'メニューを閉じる'}));
     expect(within(document.querySelector('.site-header')!).queryByRole('link', {name:'冷凍チョコ ギャラリー ホーム'})).toBeNull();
     expect(document.querySelector('#sidebar')?.hasAttribute('inert')).toBe(false);
-    await user.click(screen.getByRole('button', {name:'デザイン見本'}));
+    await user.click(screen.getByRole('button', {name:'UIデザイン'}));
     expect(screen.getByRole('button', {name:'メニューを閉じる'}).getAttribute('aria-expanded')).toBe('true');
     expect(document.querySelector('.workspace')?.classList.contains('sidebar-collapsed')).toBe(false);
     expect(screen.queryByRole('button', {name:'メニューの外側を押して閉じる'})).toBeNull();
@@ -80,9 +80,9 @@ describe('catalog interaction after the React migration', () => {
     const user = userEvent.setup(); renderApp();
     expect(screen.getByRole('heading', {name:'ホーム', level:1})).toBeTruthy();
     expect(screen.queryByRole('searchbox')).toBeNull();
-    expect(screen.getByRole('link', {name:'デザイン見本'}).getAttribute('href')).toBe('#styles');
+    expect(screen.getByRole('link', {name:'UIデザイン'}).getAttribute('href')).toBe('#styles');
     await user.click(screen.getByRole('button', {name:'メニューを開く'}));
-    await user.click(screen.getByRole('button', {name:'デザイン見本'}));
+    await user.click(screen.getByRole('button', {name:'UIデザイン'}));
     expect(location.hash).toBe('#styles');
     expect(document.querySelectorAll('.style-card').length).toBe(16);
     history.replaceState(null, '', '/#home');
@@ -136,13 +136,13 @@ describe('catalog interaction after the React migration', () => {
   it('keeps all game, motion and transition specimens and clickable animated previews', async () => {
     const user = userEvent.setup(); renderApp();
     await user.click(screen.getByRole('button', {name:'メニューを開く'}));
-    for (const [label, count] of [['ゲームUI見本',12], ['モーション見本',13], ['トランジション',12]] as const) {
+    for (const [label, count] of [['ゲームUI',12], ['モーション',13], ['トランジション',12]] as const) {
       await user.click(screen.getByRole('button', {name:label}));
       expect(document.querySelectorAll('.style-card').length).toBe(count);
       const preview = document.querySelector<HTMLButtonElement>('#gallery .preview-button, #gallery .motion-stage')!;
       await user.click(preview);
       expect(screen.getByRole('dialog')).toBeTruthy();
-      if (label !== 'ゲームUI見本') expect(document.querySelector('#gallery [data-motion]')?.classList.contains('is-paused')).toBe(true);
+      if (label !== 'ゲームUI') expect(document.querySelector('#gallery [data-motion]')?.classList.contains('is-paused')).toBe(true);
       await user.click(screen.getByRole('button', {name:'閉じる'}));
     }
   });

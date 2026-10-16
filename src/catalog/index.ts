@@ -5,7 +5,7 @@ import {motions, motionFilters, motionMarkup, motionPrompt} from './motion';
 import {transitions, transitionFilters, transitionMarkup, transitionPrompt} from './transitions';
 import type {CatalogItem, DesignStyle, ExampleItem, ExamplePage, GameStyle, MotionStyle, Page, SitePage} from '../types';
 
-export const titles: Record<SitePage, string> = {home:'ホーム', works:'公開ゲーム', media:'動画', styles:'デザイン見本', games:'ゲームUI見本', motion:'モーション見本', transitions:'トランジション', models:'ローポリモデル'};
+export const titles: Record<SitePage, string> = {home:'ホーム', works:'公開ゲーム', media:'動画', styles:'UIデザイン', games:'ゲームUI', motion:'モーション', transitions:'トランジション', models:'ローポリモデル'};
 export const exampleCatalogs: Record<ExamplePage, {items: ExampleItem[]; filters: string[]}> = {
   styles: {items: styles, filters}, games: {items: games, filters: gameFilters},
   motion: {items: motions, filters: motionFilters}, transitions: {items: transitions, filters: transitionFilters},
