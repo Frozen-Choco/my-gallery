@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Fragment, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {trackDetail, trackPage} from './analytics';
 import {animatedPage, exampleCatalogs, matchItems, pageFromHash, titles} from './catalog';
 import {loadModelCatalog} from './catalog/models';
@@ -119,7 +119,10 @@ export function App() {
       {sidebarVisible && <button ref={sidebarCloseRef} type="button" className="icon-button sidebar-close" title="メニューを閉じる" aria-label="メニューを閉じる" aria-expanded={true} aria-controls="sidebar" onClick={() => changeSidebar(false)}><Icon name="collapse"/></button>}
       <div className="sidebar-content">
       <Brand/>
-      <nav aria-label="メインナビゲーション">{navigation.map(nav => <button key={nav.page} className={`nav-item${route === nav.page ? ' active' : ''}${nav.page === 'styles' ? ' nav-library-start' : ''}`} data-page={nav.page} aria-current={route === nav.page ? 'page' : undefined} onClick={() => navigate(nav.page)}><span><Icon name={nav.icon}/></span><span>{titles[nav.page]}</span></button>)}</nav>
+      <nav aria-label="メインナビゲーション">{navigation.map(nav => <Fragment key={nav.page}>
+        {['home', 'works', 'styles'].includes(nav.page) && <hr className="sidebar-divider" aria-hidden="true"/>}
+        <button className={`nav-item${route === nav.page ? ' active' : ''}`} data-page={nav.page} aria-current={route === nav.page ? 'page' : undefined} onClick={() => navigate(nav.page)}><span><Icon name={nav.icon}/></span><span>{titles[nav.page]}</span></button>
+      </Fragment>)}</nav>
       <a className="privacy-link" href="./privacy.html">プライバシー</a>
       </div>
     </aside>

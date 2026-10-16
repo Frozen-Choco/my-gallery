@@ -38,7 +38,8 @@
 .nav-item { font-family: var(--heading-font); font-weight: 700; }
 .nav-item:hover { background: #f5e4be; }
 .nav-item.active { background: #f4d9cf; color: #9d1c3c; }
-.nav-library-start { border-top-color: #e8d9b6; }
+.sidebar-divider { border: 0; border-top: 1px solid #e8d9b6; margin: 12px 0; }
+.sidebar-divider:first-child { margin-top: 0; }
 .sidebar .privacy-link { color: #77604e; }
 
 .site-header { position: sticky; top: 0; z-index: 15; background: var(--crimson); color: #fff8e7; }
@@ -123,7 +124,6 @@
   transform: translate(0, -50%);
   transition: transform 240ms cubic-bezier(.22,.61,.36,1);
 }
-.brand-header .brand-ice { fill: #bfe8f2; }
 .site-header:not(.menu-visible) .brand-header {
   transform: translate(var(--header-brand-travel), -50%);
   pointer-events: none;

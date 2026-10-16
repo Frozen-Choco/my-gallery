@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import type {PersonalPage, ExamplePage, Model} from '../types';
-import {exampleCatalogs} from '../catalog';
+import {exampleCatalogs, titles} from '../catalog';
 import {featuredPublications, publishedGames, youtube, type Publication, type Video} from '../catalog/publications';
 import {Icon} from './Icon';
 import {Specimen} from './Specimen';
@@ -79,13 +79,9 @@ function MediaPage({videos}: {videos: Video[]}) {
     {!videos.length && <p className="video-empty">まだ投稿動画はありません。</p>}
   </>;
 }
-const destinations = [
-  {id:'works', title:'公開ゲーム'}, {id:'media', title:'メディア'},
-  {id:'styles', title:'デザインスタイル'}, {id:'games', title:'ゲームUI'},
-  {id:'motion', title:'モーション'}, {id:'transitions', title:'トランジション'}, {id:'models', title:'3Dモデル'},
-] as const;
+const destinations = ['works', 'media', 'styles', 'games', 'motion', 'transitions', 'models'] as const;
 const savedModels = normalizeModels(savedModelCatalog).items;
-function PageThumbnail({id, videos, models, offset}: {id: typeof destinations[number]['id']; videos: Video[]; models: Model[]; offset: number}) {
+function PageThumbnail({id, videos, models, offset}: {id: typeof destinations[number]; videos: Video[]; models: Model[]; offset: number}) {
   const modelItems = models.length ? models : savedModels;
   const count = id === 'works' ? publishedGames.length : id === 'media' ? videos.length : id === 'models' ? modelItems.length : exampleCatalogs[id].items.length;
   function renderSlide(index: number) {
@@ -104,6 +100,6 @@ export function PersonalPages({page, models = []}: {page: PersonalPage; models?:
   const featured = featuredPublications(videos);
   return <div className="home-page">
     <FeaturedBanner key={featured.map(item => item.id).join(',')} items={featured}/>
-    <div className="page-links">{destinations.map((item, index) => <a key={item.id} href={`#${item.id}`} className="page-link"><PageThumbnail id={item.id} videos={videos} models={models} offset={index}/><h2>{item.title}<Icon name="arrow"/></h2></a>)}</div>
+    <div className="page-links">{destinations.map((item, index) => <a key={item} href={`#${item}`} className="page-link"><PageThumbnail id={item} videos={videos} models={models} offset={index}/><h2>{titles[item]}<Icon name="arrow"/></h2></a>)}</div>
   </div>;
 }
