@@ -158,11 +158,11 @@ export function App() {
       {personalPage ? <PersonalPages page={personalPage} models={models.catalog.items}/> : overview ? <CollectionOverview key={overview} collection={overview} onNavigate={next => {setSort('name-asc'); navigate(next);}} paused={selection !== null} onOpen={({page:sourcePage, item}) => openDetail({...item, sourcePage})}/> : <>
       {collection && <a className="collection-back" href={`#${collection}`} onClick={event => {if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button === 0) {event.preventDefault(); navigate(collection);}}}>← {titles[collection]}</a>}
       <div className="catalog-toolbar">
-      <div className="catalog-search"><label className="search-box"><Icon name="search"/><input ref={searchRef} id="search" type="search" placeholder={page === 'models' ? 'モデル名・カテゴリで検索' : isAnimated ? '効果・特徴で検索' : 'スタイル・特徴で検索'} autoComplete="off" aria-label={`${titles[collection ?? page]}・キーワードを検索`} value={query} onChange={event => {setQuery(event.target.value); setModelPage(1);}}/><kbd>/</kbd></label></div>
-      </div>
       <div className="filter-row"><label id="filters" className="genre-select"><span>{page === 'models' ? 'カテゴリ' : 'ジャンル'}</span><select aria-label={page === 'models' ? 'カテゴリで絞り込む' : 'ジャンルで絞り込む'} value={filter} onChange={event => {setFilter(event.target.value); setModelPage(1);}}>
         {catalog.filters.map(value => <option key={value} value={value}>{value}</option>)}
       </select></label><button id="filter-reset" className={`text-button${!query.trim() && filter === 'すべて' ? ' hidden' : ''}`} onClick={reset}>リセット ↺</button></div>
+      <div className="catalog-search"><label className="search-box"><Icon name="search"/><input ref={searchRef} id="search" type="search" placeholder={page === 'models' ? 'モデル名・カテゴリで検索' : isAnimated ? '効果・特徴で検索' : 'スタイル・特徴で検索'} autoComplete="off" aria-label={`${titles[collection ?? page]}・キーワードを検索`} value={query} onChange={event => {setQuery(event.target.value); setModelPage(1);}}/><kbd>/</kbd></label></div>
+      </div>
       <p id="catalog-status" className={`catalog-status${['loading','fallback','error'].includes(status) ? '' : ' hidden'}`} role="status">
         {status === 'loading' ? 'モデルを読み込んでいます…' : status === 'fallback' ? '最新の一覧を取得できないため、保存済みの一覧を表示しています。' : status === 'error' ? 'モデルを読み込めませんでした。' : ''}
         {(status === 'fallback' || status === 'error') && <button onClick={models.retry}>再読み込み</button>}
