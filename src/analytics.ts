@@ -1,5 +1,5 @@
 import config from './analytics.config.json';
-import type {Page} from './types';
+import type {Page, SitePage} from './types';
 
 declare global {
   interface Window {
@@ -31,7 +31,7 @@ function initialize() {
   return true;
 }
 
-export function trackPage(page: Page, title: string) {
+export function trackPage(page: SitePage, title: string) {
   if (!initialize()) return;
   // Virtual paths keep hash-based categories distinct in GA4's standard reports.
   const url = `${location.origin}/my-gallery/${page}`;

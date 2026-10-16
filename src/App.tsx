@@ -6,11 +6,12 @@ import {Brand} from './components/Brand';
 import {DetailDialog} from './components/DetailDialog';
 import {Icon, type IconName} from './components/Icon';
 import {ModelCard} from './components/ModelPreview';
+import {PersonalPages} from './components/PersonalPages';
 import {Specimen} from './components/Specimen';
-import type {ExampleItem, Model, ModelCatalog, ModelStatus, Page, Selection} from './types';
+import type {ExampleItem, Model, ModelCatalog, ModelStatus, Page, SitePage, Selection} from './types';
 
 const pageSize = 60;
-const navigation: {page: Page; icon: IconName}[] = [{page:'styles',icon:'grid'}, {page:'games',icon:'game'}, {page:'motion',icon:'motion'}, {page:'transitions',icon:'layers'}, {page:'models',icon:'cube'}];
+const navigation: {page: SitePage; icon: IconName}[] = [{page:'home',icon:'home'}, {page:'works',icon:'game'}, {page:'media',icon:'video'}, {page:'styles',icon:'grid'}, {page:'games',icon:'game'}, {page:'motion',icon:'motion'}, {page:'transitions',icon:'layers'}, {page:'models',icon:'cube'}];
 function useModels(active: boolean) {
   const [catalog, setCatalog] = useState<ModelCatalog>({items: [], filters: ['すべて']});
   const [status, setStatus] = useState<ModelStatus>('idle');
@@ -37,7 +38,9 @@ function Pagination({page, pages, top = false, onChange}: {page: number; pages: 
   </nav>;
 }
 export function App() {
-  const [page, setPage] = useState<Page>(() => pageFromHash(location.hash));
+  const [route, setPage] = useState<SitePage>(() => pageFromHash(location.hash));
+  const personalPage = route === 'home' || route === 'works' || route === 'media' ? route : null;
+  const page: Page = route === 'home' || route === 'works' || route === 'media' ? 'styles' : route;
   const [filter, setFilter] = useState('すべて');
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<'default' | 'name'>('default');
@@ -52,25 +55,26 @@ export function App() {
   const paginationFocus = useRef(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const models = useModels(page === 'models');
-  useEffect(() => {trackPage(page, titles[page]);}, [page]);
+  useEffect(() => {trackPage(route, titles[route]); document.title = `${titles[route]} | 冷凍チョコ ギャラリー`;}, [route]);
   const reset = useCallback(() => {setFilter('すべて'); setQuery(''); setModelPage(1);}, []);
-  const navigate = useCallback((next: Page) => {
+  const navigate = useCallback((next: SitePage) => {
     setPage(next); reset(); setSidebarOpen(false); setSelection(null);
-    history.replaceState(null, '', next === 'styles' ? location.pathname : '#' + next);
+    if (location.hash !== '#' + next) history.pushState(null, '', '#' + next);
+    document.getElementById('main')?.scrollIntoView({block: 'start'});
   }, [reset]);
   useEffect(() => {
     const media = window.matchMedia('(max-width: 760px)');
     const resize = () => setMobile(media.matches);
-    const hashchange = () => {if (location.hash === '' || Object.hasOwn(titles, location.hash.slice(1))) {setPage(pageFromHash(location.hash)); reset(); setSelection(null);}};
+    const hashchange = () => {if (location.hash === '' || Object.hasOwn(titles, location.hash.slice(1))) {setPage(pageFromHash(location.hash)); reset(); setSelection(null); setSidebarOpen(false);}};
     const keydown = (event: KeyboardEvent) => {
       const target = event.target as Element | null;
       if (event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey && !target?.closest('input,textarea,[contenteditable]') && !document.querySelector('dialog[open]')) {event.preventDefault(); searchRef.current?.focus();}
       if (event.key === 'Escape') setSidebarOpen(false);
     };
     const outside = (event: MouseEvent) => {if (!(event.target as Element).closest('#sidebar,#menu-button')) setSidebarOpen(false);};
-    media.addEventListener('change', resize); window.addEventListener('hashchange', hashchange);
+    media.addEventListener('change', resize); window.addEventListener('hashchange', hashchange); window.addEventListener('popstate', hashchange);
     document.addEventListener('keydown', keydown); document.addEventListener('click', outside);
-    return () => {media.removeEventListener('change', resize); window.removeEventListener('hashchange', hashchange); document.removeEventListener('keydown', keydown); document.removeEventListener('click', outside);};
+    return () => {media.removeEventListener('change', resize); window.removeEventListener('hashchange', hashchange); window.removeEventListener('popstate', hashchange); document.removeEventListener('keydown', keydown); document.removeEventListener('click', outside);};
   }, [reset]);
   useEffect(() => () => clearTimeout(toastTimer.current), []);
   const toast = useCallback((text: string) => {
@@ -98,13 +102,14 @@ export function App() {
     <a href="#main" className="skip">コンテンツへ移動</a>
     <aside className={`sidebar${sidebarOpen ? ' open' : ''}`} id="sidebar" inert={mobile && !sidebarOpen}>
       <Brand/>
-      <nav aria-label="ライブラリ">{navigation.map(nav => <button key={nav.page} className={`nav-item${page === nav.page ? ' active' : ''}`} data-page={nav.page} aria-current={page === nav.page ? 'page' : undefined} onClick={() => navigate(nav.page)}><span><Icon name={nav.icon}/></span><span>{titles[nav.page]}</span></button>)}</nav>
+      <nav aria-label="メインナビゲーション">{navigation.map(nav => <button key={nav.page} className={`nav-item${route === nav.page ? ' active' : ''}${nav.page === 'styles' ? ' nav-library-start' : ''}`} data-page={nav.page} aria-current={route === nav.page ? 'page' : undefined} onClick={() => navigate(nav.page)}><span><Icon name={nav.icon}/></span><span>{titles[nav.page]}</span></button>)}</nav>
       <a className="privacy-link" href="./privacy.html">プライバシー</a>
     </aside>
     <div className="workspace"><main id="main"><section className="catalog" aria-labelledby="catalog-title">
-      <div className="catalog-heading"><div className="section-title"><button id="menu-button" className="icon-button mobile-only" aria-label="メニューを開く" aria-expanded={sidebarOpen} onClick={() => setSidebarOpen(open => !open)}><Icon name="menu"/></button><h1 id="catalog-title">{titles[page]}</h1></div>
-        <label className="search-box"><Icon name="search"/><input ref={searchRef} id="search" type="search" placeholder={page === 'models' ? 'モデル名・カテゴリで検索' : isAnimated ? '効果・特徴で検索' : 'スタイル・特徴で検索'} autoComplete="off" aria-label={`${titles[page]}・キーワードを検索`} value={query} onChange={event => {setQuery(event.target.value); setModelPage(1);}}/><kbd>/</kbd></label>
+      <div className="catalog-heading"><div className="section-title"><button id="menu-button" className="icon-button mobile-only" aria-label="メニューを開く" aria-expanded={sidebarOpen} onClick={() => setSidebarOpen(open => !open)}><Icon name="menu"/></button><h1 id="catalog-title">{titles[route]}</h1></div>
+        {!personalPage && <label className="search-box"><Icon name="search"/><input ref={searchRef} id="search" type="search" placeholder={page === 'models' ? 'モデル名・カテゴリで検索' : isAnimated ? '効果・特徴で検索' : 'スタイル・特徴で検索'} autoComplete="off" aria-label={`${titles[page]}・キーワードを検索`} value={query} onChange={event => {setQuery(event.target.value); setModelPage(1);}}/><kbd>/</kbd></label>}
       </div>
+      {personalPage ? <PersonalPages page={personalPage}/> : <>
       <div className="filter-row"><div id="filters" className="filters" aria-label={page === 'models' ? 'カテゴリで絞り込む' : isAnimated ? '効果で絞り込む' : page === 'games' ? '見た目で絞り込む' : '印象で絞り込む'}>
         {catalog.filters.map(value => <button key={value} className={`filter-chip${filter === value ? ' active' : ''}`} aria-pressed={filter === value} data-filter={value} onClick={() => {setFilter(value); setModelPage(1);}}>{value}</button>)}
       </div><button id="filter-reset" className={`text-button${!query.trim() && filter === 'すべて' ? ' hidden' : ''}`} onClick={reset}>リセット ↺</button></div>
@@ -125,6 +130,7 @@ export function App() {
       </div>
       <Pagination page={currentPage} pages={pages} onChange={changeModelPage}/>
       <div id="empty" className={`empty${empty ? '' : ' hidden'}`}><p id="empty-message">該当する見本がありません。</p><button id="empty-reset" className="primary-button" onClick={reset}>絞り込みを解除</button></div>
+    </>}
     </section></main></div>
     {selection && <DetailDialog key={`${selection.page}:${selection.item.id}`} selection={selection} onClose={() => setSelection(null)} onToast={toast}/>}
     <div id="toast" className={`toast${message ? ' show' : ''}`} role="status">{message}</div>

@@ -1,4 +1,7 @@
 const paths = {
+  home: 'm3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9',
+  video: 'M4 5h16v14H4zM10 9l5 3-5 3z',
+  arrow: 'M5 12h14m-6-6 6 6-6 6',
   cube: 'm12 3 9 5v8l-9 5-9-5V8zM3 8l9 5 9-5M12 13v8M7.5 5.5l9 5',
   game: 'M7 7h10c3 0 5 10 3 11-2 1-4-3-4-3H8s-2 4-4 3C2 17 4 7 7 7ZM8 9v5M5.5 11.5h5M15 10h.01M18 13h.01',
   motion: 'm10 6 9 6-9 6zM4 7v10', layers: 'm12 3 10 6-10 6L2 9zM3 13l9 5 9-5M3 17l9 5 9-5',

@@ -9,3 +9,5 @@ import './styles/transitions.css';
 import './styles/models.css';
 
 createRoot(document.getElementById('root')!).render(<StrictMode><App/></StrictMode>);
+
+import './styles/personal.css';

@@ -3,7 +3,7 @@ import {useId} from 'react';
 export function Brand() {
   const id = useId();
   const letters = `${id}-frozen`, clip = `${id}-ice`, gradient = `${id}-gallery`;
-  return <a className="brand" href="./" aria-label="冷凍チョコ ギャラリー ホーム">
+  return <a className="brand" href="#home" aria-label="冷凍チョコ ギャラリー ホーム">
     <svg className="brand-art" viewBox="0 0 360 240" aria-hidden="true">
       <defs>
         <text id={letters} x="62" y="94" fontSize="65" letterSpacing="-3" className="brand-frozen">冷凍</text>

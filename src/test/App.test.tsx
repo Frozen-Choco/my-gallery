@@ -13,7 +13,36 @@ function fixtureModels(count: number) {
   return Array.from({length: count}, (_, i) => ({id: `model_${String(i + 1).padStart(4,'0')}`, title_ja: `モデル ${String(i + 1).padStart(4,'0')}`, category: i % 2 ? 'household' : 'furniture', triangles: 640, vertices: 352, dimensions_m: [1, 2, 3], glb_bytes: 1000, blend_bytes: 2000, blender_version: '4.3.2'}));
 }
 describe('catalog interaction after the React migration', () => {
+  it('opens home by default and preserves direct catalog URLs and browser history', async () => {
+    const user = userEvent.setup(); renderApp();
+    expect(screen.getByRole('heading', {name:'ホーム', level:1})).toBeTruthy();
+    expect(screen.queryByRole('searchbox')).toBeNull();
+    expect(screen.getByRole('link', {name:/デザインスタイル 配色/}).getAttribute('href')).toBe('#styles');
+    await user.click(screen.getByRole('button', {name:'デザインスタイル'}));
+    expect(location.hash).toBe('#styles');
+    expect(document.querySelectorAll('.style-card').length).toBe(16);
+    history.replaceState(null, '', '/#home');
+    fireEvent(window, new PopStateEvent('popstate'));
+    expect(screen.getByRole('heading', {name:'ホーム', level:1})).toBeTruthy();
+    history.replaceState(null, '', '/#motion');
+    fireEvent(window, new HashChangeEvent('hashchange'));
+    expect(document.querySelectorAll('.motion-card').length).toBe(13);
+  });
+  it('publishes the supplied game and channel links without mixing them with game UI samples', async () => {
+    history.replaceState(null, '', '/#works');
+    const user = userEvent.setup(); renderApp();
+    const game = screen.getByRole('link', {name:'星屑のゆりかごをitch.ioで見る（新しいタブ）'});
+    expect(game.getAttribute('href')).toBe('https://frozen-choco.itch.io/stardust-cradle');
+    expect(game.getAttribute('rel')).toContain('noopener');
+    expect(screen.queryByRole('searchbox')).toBeNull();
+    await user.click(screen.getByRole('button', {name:'メディア'}));
+    expect(screen.getByRole('link', {name:'冷凍チョコのYouTubeチャンネル（新しいタブ）'}).getAttribute('href')).toBe('https://www.youtube.com/channel/UCFH81ruwAfy-d2TzVRjsJFA');
+    expect(screen.queryByText('ニコニコ')).toBeNull();
+    expect(screen.getByRole('link', {name:'冷凍チョコ ギャラリー ホーム'}).getAttribute('href')).toBe('#home');
+  });
+
   it('preserves search, filters, view, detail, prompt editing and focus restoration', async () => {
+    history.replaceState(null, '', '/#styles');
     const user = userEvent.setup(); renderApp();
     expect(document.querySelectorAll('.style-card').length).toBe(16);
     await user.type(screen.getByRole('searchbox'), 'ミニマリズム');

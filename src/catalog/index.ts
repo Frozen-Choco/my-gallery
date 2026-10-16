@@ -3,16 +3,16 @@ import {sampleMarkup} from './samples';
 import {games, gameFilters, gameMarkup, gamePrompt} from './games';
 import {motions, motionFilters, motionMarkup, motionPrompt} from './motion';
 import {transitions, transitionFilters, transitionMarkup, transitionPrompt} from './transitions';
-import type {CatalogItem, DesignStyle, ExampleItem, ExamplePage, GameStyle, MotionStyle, Page} from '../types';
+import type {CatalogItem, DesignStyle, ExampleItem, ExamplePage, GameStyle, MotionStyle, Page, SitePage} from '../types';
 
-export const titles: Record<Page, string> = {styles:'デザインスタイル', games:'ゲームUI', motion:'モーション', transitions:'トランジション', models:'3Dモデル'};
+export const titles: Record<SitePage, string> = {home:'ホーム', works:'公開ゲーム', media:'メディア', styles:'デザインスタイル', games:'ゲームUI', motion:'モーション', transitions:'トランジション', models:'3Dモデル'};
 export const exampleCatalogs: Record<ExamplePage, {items: ExampleItem[]; filters: string[]}> = {
   styles: {items: styles, filters}, games: {items: games, filters: gameFilters},
   motion: {items: motions, filters: motionFilters}, transitions: {items: transitions, filters: transitionFilters},
 };
-export function pageFromHash(hash: string): Page {
+export function pageFromHash(hash: string): SitePage {
   const candidate = hash.slice(1);
-  return Object.hasOwn(titles, candidate) ? candidate as Page : 'styles';
+  return Object.hasOwn(titles, candidate) ? candidate as SitePage : 'home';
 }
 export const animatedPage = (page: Page) => page === 'motion' || page === 'transitions';
 export function specimenMarkup(page: ExamplePage, item: CatalogItem, detail = false): string {
