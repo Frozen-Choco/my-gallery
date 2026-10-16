@@ -21,8 +21,8 @@
   padding: 32px 18px 24px;
 }
 .sidebar-close {
-  position: absolute; top: calc((var(--header-height) - 48px) / 2); left: calc(100% - 1px);
-  width: 44px; height: 48px; padding: 0;
+  position: absolute; top: var(--menu-inset); left: calc(100% - 1px);
+  width: 44px; height: 44px; padding: 0;
   border: 1px solid #e8d9b6; border-left: 0; border-radius: 0 12px 12px 0;
   background: var(--cream); color: #64412e;
 }
@@ -87,7 +87,6 @@
 
 @media (min-width: 761px) {
   .workspace:not(.sidebar-collapsed) .site-header .catalog-heading { padding-left: max(var(--content-gutter), 64px); }
-  .sidebar:not(.open) { transform: translateX(-100%); }
   .workspace.sidebar-collapsed { margin-left: 0; }
 }
 
@@ -123,7 +122,7 @@
   width: var(--header-brand-width); height: calc(var(--header-height) - 12px);
   margin: 0; color: #ffe2bb; pointer-events: auto;
   transform: translate(0, -50%);
-  transition: transform 240ms cubic-bezier(.22,.61,.36,1);
+  transition: transform 360ms cubic-bezier(.22,.61,.36,1);
 }
 .site-header:not(.menu-visible) .brand-header {
   transform: translate(var(--header-brand-travel), -50%);
@@ -144,11 +143,19 @@
 }
 /* The header and its logo travel by the same sidebar width, with the same timing. */
 @media (min-width: 761px) {
-  .workspace { transition: margin-left 240ms cubic-bezier(.22,.61,.36,1); }
+  .workspace { transition: margin-left 360ms cubic-bezier(.22,.61,.36,1); }
 }
-.sidebar { transition: transform 240ms cubic-bezier(.22,.61,.36,1); }
+.sidebar, .sidebar.open { transform: none; }
+.sidebar {
+  clip-path: inset(var(--menu-inset) calc(100% - var(--menu-inset) - 44px) calc(100% - var(--menu-inset) - 44px) var(--menu-inset) round 10px);
+  visibility: hidden;
+  transition: clip-path 360ms cubic-bezier(.22,.61,.36,1), visibility 0s 360ms;
+}
+.sidebar.open { clip-path: inset(0 -44px 0 0 round 0); visibility: visible; transition-delay: 0s; }
+.sidebar-content { opacity: 0; transform: translateY(-8px); transition: opacity 140ms, transform 240ms; }
+.sidebar.open .sidebar-content { opacity: 1; transform: none; transition-delay: 70ms; }
 @media (prefers-reduced-motion: reduce) {
-  .header-brand-viewport .brand-header, .workspace, .sidebar { transition: none; }
+  .header-brand-viewport .brand-header, .workspace, .sidebar, .sidebar-content { transition: none; }
 }
 
 .catalog-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
@@ -203,3 +210,10 @@
 @media (max-width: 760px), (hover: none), (pointer: coarse) {
   .rail-arrow { display: none; }
 }
+
+.genre-select { display: inline-flex; align-items: center; gap: 12px; font-size: 12px; color: #574037; max-width: 100%; }
+.genre-select > span { flex-shrink: 0; }
+.genre-select select { min-width: 180px; max-width: 100%; padding: 10px 32px 10px 12px; border: 1px solid #d8d9cf; border-radius: 6px; background: #fffdf7; color: #292e27; cursor: pointer; }
+/* One preview format across the catalog, home and video cards; models stay square. */
+.sample, .motion-demo, .transition-demo, .page-thumbnail, .published-game > .game-artwork, .banner-slide { aspect-ratio: 16 / 9; }
+.motion-stage, .transition-stage { position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: auto; }

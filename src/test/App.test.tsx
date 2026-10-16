@@ -52,7 +52,7 @@ describe('catalog interaction after the React migration', () => {
       expect(location.hash).toBe(hash);
       expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(count);
       expect(document.querySelector('#gallery .card-description')).toBeTruthy();
-      expect(document.querySelector('#filters .filter-chip')).toBeTruthy();
+      expect(document.querySelector('#filters select')).toBeTruthy();
     }
     await user.type(screen.getByRole('searchbox'), '存在しない名前');
     expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(0);
@@ -187,12 +187,12 @@ describe('catalog interaction after the React migration', () => {
     expect(ascending[0]).toBe('エディトリアル');
     await user.selectOptions(sort, 'name-desc');
     expect(names()).toEqual([...ascending].reverse());
-    await user.click(screen.getByRole('button', {name:'楽しい・ポップ'}));
+    await user.selectOptions(screen.getByRole('combobox', {name:'ジャンルで絞り込む'}), '楽しい・ポップ');
     const descendingFiltered = names();
     expect(descendingFiltered.length).toBeLessThan(ascending.length);
     await user.selectOptions(sort, 'name-asc');
     expect(names()).toEqual([...descendingFiltered].reverse());
-    expect(screen.getByRole('button', {name:'楽しい・ポップ'}).getAttribute('aria-pressed')).toBe('true');
+    expect((screen.getByRole('combobox', {name:'ジャンルで絞り込む'}) as HTMLSelectElement).value).toBe('楽しい・ポップ');
     await user.selectOptions(sort, 'name-desc');
     await user.click(screen.getByRole('link', {name:'← デザイン'}));
     await user.click(within(screen.getByRole('region', {name:'ウェブ'})).getByRole('link', {name:'すべて見る'}));
@@ -207,9 +207,9 @@ describe('catalog interaction after the React migration', () => {
     await user.type(screen.getByRole('searchbox'), 'ミニマリズム');
     expect(document.querySelectorAll('.style-card').length).toBe(1);
     await user.click(screen.getByRole('button', {name:'リセット ↺'}));
-    await user.click(screen.getByRole('button', {name:'楽しい・ポップ'}));
+    await user.selectOptions(screen.getByRole('combobox', {name:'ジャンルで絞り込む'}), '楽しい・ポップ');
     expect(document.querySelectorAll('.style-card').length).toBeLessThan(16);
-    await user.click(within(document.querySelector('#filters')!).getByRole('button', {name:'すべて'}));
+    await user.selectOptions(screen.getByRole('combobox', {name:'ジャンルで絞り込む'}), 'すべて');
     await user.click(screen.getByRole('button', {name:'リスト表示'}));
     expect(document.querySelector('#gallery')?.classList.contains('list-view')).toBe(true);
     const opener = screen.getByRole('button', {name:'Minimalism の見本と特徴を見る'});
@@ -265,7 +265,7 @@ describe('catalog interaction after the React migration', () => {
     expect(trackDownload).toHaveBeenLastCalledWith('model_0999', 'glb');
     await user.clear(screen.getByRole('searchbox'));
     await user.selectOptions(top.getByRole('combobox'), '17');
-    await user.click(screen.getByRole('button', {name:'家具'}));
+    await user.selectOptions(screen.getByRole('combobox', {name:'カテゴリで絞り込む'}), '家具');
     expect(screen.getByText('1–60 / 500件')).toBeTruthy();
     await user.type(screen.getByRole('searchbox'), '該当しない');
     expect(screen.getByText('該当する見本がありません。')).toBeTruthy();
