@@ -1,54 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Potta+One&display=swap&text=%E5%86%B7%E5%87%8D');
+
 .brand {
-  position: relative;
+  --brand-chocolate: #805136;
   display: block;
   flex-shrink: 0;
   width: 180px;
   max-width: 100%;
-  height: 94px;
-  margin: 0 auto 24px;
-  color: #34251f;
+  height: 120px;
+  margin: 0 auto 18px;
   text-decoration: none;
-  isolation: isolate;
 }
-.brand .brand-art {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-.brand-name {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  flex-direction: column;
-  padding: 9px 12px 0;
-  font-family: 'Noto Sans JP', sans-serif;
-  font-weight: 900;
-  white-space: nowrap;
-}
-.brand-top {
-  display: flex;
-  font-size: 30px;
-  line-height: 1.1;
-  letter-spacing: -.065em;
-}
-.brand-frozen {
-  color: #bee1ea;
-  background: linear-gradient(127deg, #ceeaf0 0 42%, #83b7c6 42% 44%, #f0fbfc 44% 45%, #bee1ea 45% 73%, #f0fbfc 73% 75%, #a4cdd9 75%);
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.brand-cocoa { color: #faf8f2; }
-.brand-gallery {
-  margin-top: 20px;
-  color: #34251f;
-  font-size: 22px;
-  line-height: 1.1;
-  font-weight: 700;
-  letter-spacing: -.045em;
-}
+.brand .brand-art { display: block; width: 100%; height: 100%; }
+.brand-frozen { font-family: 'Potta One', 'Noto Sans JP', sans-serif; font-weight: 400; }
+.brand-ice { fill: #487c90; }
+.brand-chocolate { fill: var(--brand-chocolate); }
+.brand-chocolate-strokes { stroke: var(--brand-chocolate); }
 @media (forced-colors: active) {
-  .brand-art { display: none; }
-  .brand-frozen { background: none; -webkit-text-fill-color: currentColor; }
-  .brand-name span { color: LinkText; }
+  .brand-ice, .brand-chocolate { fill: LinkText; }
+  .brand-chocolate-strokes, .brand-gallery, .brand-divider { stroke: LinkText; }
+  .brand-facets { display: none; }
 }
