@@ -53,3 +53,8 @@
   .site-header h1 { font-size: 24px; }
   .workspace main { padding-top: 24px; }
 }
+
+@media (min-width: 761px) {
+  .sidebar:not(.open) { transform: translateX(-100%); }
+  .workspace.sidebar-collapsed { margin-left: 0; }
+}

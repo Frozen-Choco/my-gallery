@@ -15,15 +15,35 @@ function fixtureModels(count: number) {
   return Array.from({length: count}, (_, i) => ({id: `model_${String(i + 1).padStart(4,'0')}`, title_ja: `モデル ${String(i + 1).padStart(4,'0')}`, category: i % 2 ? 'household' : 'furniture', triangles: 640, vertices: 352, dimensions_m: [1, 2, 3], glb_bytes: 1000, blend_bytes: 2000, blender_version: '4.3.2'}));
 }
 describe('catalog interaction after the React migration', () => {
+  it('starts desktop navigation open and preserves its toggle state across page navigation', async () => {
+    const user = userEvent.setup(); renderApp();
+    const toggle = screen.getByRole('button', {name:'メニューを閉じる'});
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    await user.click(toggle);
+    expect(toggle.getAttribute('aria-label')).toBe('メニューを開く');
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(document.querySelector('#sidebar')?.hasAttribute('inert')).toBe(true);
+    expect(document.querySelector('.workspace')?.classList.contains('sidebar-collapsed')).toBe(true);
+    history.replaceState(null, '', '/#media');
+    fireEvent(window, new HashChangeEvent('hashchange'));
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    await user.click(toggle);
+    expect(document.querySelector('#sidebar')?.hasAttribute('inert')).toBe(false);
+    await user.click(screen.getByRole('button', {name:'デザインスタイル'}));
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(document.querySelector('.workspace')?.classList.contains('sidebar-collapsed')).toBe(false);
+    expect(screen.queryByRole('button', {name:'メニューの外側を押して閉じる'})).toBeNull();
+  });
+
   it('dismisses the mobile sidebar from the backdrop without activating content behind it', async () => {
     vi.stubGlobal('matchMedia', vi.fn((query: string) => ({matches:query === '(max-width: 760px)',media:query,addEventListener:vi.fn(),removeEventListener:vi.fn()})));
     const user = userEvent.setup(); renderApp();
     const menu = screen.getByRole('button', {name:'メニューを開く'});
     await user.click(menu);
     expect(menu.getAttribute('aria-expanded')).toBe('true');
-    await user.click(screen.getByRole('button', {name:'メニューを閉じる'}));
+    await user.click(screen.getByRole('button', {name:'メニューの外側を押して閉じる'}));
     expect(menu.getAttribute('aria-expanded')).toBe('false');
-    expect(screen.queryByRole('button', {name:'メニューを閉じる'})).toBeNull();
+    expect(screen.queryByRole('button', {name:'メニューの外側を押して閉じる'})).toBeNull();
     expect(document.activeElement).toBe(menu);
     expect(location.hash).toBe('');
     expect(screen.queryByRole('dialog')).toBeNull();

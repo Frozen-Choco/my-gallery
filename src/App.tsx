@@ -48,7 +48,9 @@ export function App() {
   const [modelPage, setModelPage] = useState(1);
   const [selection, setSelection] = useState<Selection | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
   const [mobile, setMobile] = useState(() => window.matchMedia('(max-width: 760px)').matches);
+  const sidebarVisible = mobile ? sidebarOpen : desktopSidebarOpen;
   const [message, setMessage] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -99,14 +101,14 @@ export function App() {
   const status = page === 'models' ? models.status : '';
   return <>
     <a href="#main" className="skip">コンテンツへ移動</a>
-    {mobile && sidebarOpen && <button type="button" className="sidebar-backdrop" aria-label="メニューを閉じる" onClick={() => {setSidebarOpen(false); document.getElementById('menu-button')?.focus({preventScroll:true});}}/>}
-    <aside className={`sidebar${sidebarOpen ? ' open' : ''}`} id="sidebar" inert={mobile && !sidebarOpen}>
+    {mobile && sidebarOpen && <button type="button" className="sidebar-backdrop" aria-label="メニューの外側を押して閉じる" onClick={() => {setSidebarOpen(false); document.getElementById('menu-button')?.focus({preventScroll:true});}}/>}
+    <aside className={`sidebar${sidebarVisible ? ' open' : ''}`} id="sidebar" inert={!sidebarVisible}>
       <Brand/>
       <nav aria-label="メインナビゲーション">{navigation.map(nav => <button key={nav.page} className={`nav-item${route === nav.page ? ' active' : ''}${nav.page === 'styles' ? ' nav-library-start' : ''}`} data-page={nav.page} aria-current={route === nav.page ? 'page' : undefined} onClick={() => navigate(nav.page)}><span><Icon name={nav.icon}/></span><span>{titles[nav.page]}</span></button>)}</nav>
       <a className="privacy-link" href="./privacy.html">プライバシー</a>
     </aside>
-    <div className="workspace"><header className="site-header">
-      <div className="catalog-heading"><div className="section-title"><button id="menu-button" className="icon-button mobile-only" aria-label="メニューを開く" aria-expanded={sidebarOpen} aria-controls="sidebar" onClick={() => setSidebarOpen(open => !open)}><Icon name="menu"/></button><h1 id="catalog-title">{titles[route]}</h1></div>
+    <div className={`workspace${!mobile && !desktopSidebarOpen ? ' sidebar-collapsed' : ''}`}><header className="site-header">
+      <div className="catalog-heading"><div className="section-title"><button id="menu-button" className="icon-button" aria-label={sidebarVisible ? 'メニューを閉じる' : 'メニューを開く'} aria-expanded={sidebarVisible} aria-controls="sidebar" onClick={() => mobile ? setSidebarOpen(open => !open) : setDesktopSidebarOpen(open => !open)}><Icon name="menu"/></button><h1 id="catalog-title">{titles[route]}</h1></div>
       </div>
       </header><main id="main"><section className="catalog" aria-labelledby="catalog-title">
       {personalPage ? <PersonalPages page={personalPage}/> : <>
