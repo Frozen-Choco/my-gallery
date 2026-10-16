@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>プライバシー | 冷凍チョコ ギャラリー</title>
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<style>
+body{margin:0;background:#f8f8f5;color:#292e27;font:15px/1.9 system-ui,sans-serif}main{max-width:640px;margin:64px auto;padding:0 24px}h1{font-size:24px;font-weight:600}p{margin:24px 0}a{color:#536446;text-underline-offset:4px}button{font:inherit;color:#fff;background:#3e4937;border:0;border-radius:5px;padding:10px 16px;cursor:pointer}a:focus-visible,button:focus-visible{outline:2px solid #bb5233;outline-offset:4px}#status{font-size:13px;color:#6e7766}
+</style>
+</head>
+<body><main>
+<a href="./">← ギャラリーに戻る</a>
+<h1>プライバシー</h1>
+<p>冷凍チョコ ギャラリーでは、利用状況の把握とコンテンツ改善のためにGoogle Analytics 4を使用します。Cookieなどを使って、閲覧ページ、詳細の表示、ダウンロードリンクのクリック、参照元や端末・ブラウザに関する情報をGoogleに送信します。</p>
+<p>サイト内の検索文字列や、編集したAIへの指示文は計測イベントに含めません。統計の管理画面は一般公開しません。広告向けのGoogleシグナルと広告パーソナライズは使用しません。</p>
+<p>Googleによる情報の取り扱いは、<a href="https://policies.google.com/technologies/partner-sites?hl=ja">Googleのサービスを使用するサイトやアプリから収集した情報の使用</a>をご確認ください。</p>
+<p>このブラウザでの計測は、下のボタンで停止・再開できます。設定はこのブラウザ内に保存され、次にギャラリーを開いたときから反映されます。</p>
+<button id="toggle" type="button">計測設定を読み込み中…</button>
+<p id="status" role="status"></p>
+<script>
+const key='gallery-analytics-disabled',button=document.getElementById('toggle'),status=document.getElementById('status');
+function render(){try{const disabled=localStorage.getItem(key)==='1';button.textContent=disabled?'このブラウザで計測を再開':'このブラウザで計測を停止';status.textContent=disabled?'このブラウザの計測は停止しています。':'このブラウザでは計測が有効です。';}catch{button.disabled=true;status.textContent='ブラウザの保存領域を利用できないため、計測は行いません。';button.textContent='計測は停止しています';}}
+button.addEventListener('click',()=>{try{if(localStorage.getItem(key)==='1')localStorage.removeItem(key);else localStorage.setItem(key,'1');}catch{}render();});render();
+</script>
+</main></body></html>

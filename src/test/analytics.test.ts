@@ -13,8 +13,22 @@ beforeEach(() => {
 });
 afterEach(() => {
   delete window.dataLayer; delete window.gtag;
+  localStorage.removeItem('gallery-analytics-disabled');
   document.querySelectorAll('script[src*="googletagmanager.com"]').forEach(script => script.remove());
   vi.unstubAllEnvs();
+});
+
+it('respects the browser opt-out before loading Google or sending later events', async () => {
+  const {trackPage, trackDetail} = await import('../analytics');
+  localStorage.setItem('gallery-analytics-disabled', '1');
+  trackPage('styles', 'デザインスタイル');
+  expect(calls()).toEqual([]);
+  localStorage.removeItem('gallery-analytics-disabled');
+  trackPage('styles', 'デザインスタイル');
+  expect(events().length).toBe(1);
+  localStorage.setItem('gallery-analytics-disabled', '1');
+  trackDetail('styles', 'minimal');
+  expect(events().length).toBe(1);
 });
 
 it('does not load Google or queue events without an ID, in development, or on a preview host', async () => {
@@ -42,7 +56,7 @@ it('counts a category once across repeated effects and tracks returning visits w
   expect(events().length).toBe(3);
   expect(events()[1]).toEqual(['event','page_view',{
     page_location:'https://frozen-choco.github.io/my-gallery/models',
-    page_title:'3Dモデル | FORMA',
+    page_title:'3Dモデル | 冷凍チョコ ギャラリー',
     page_referrer:'https://frozen-choco.github.io/my-gallery/styles',
   }]);
 });

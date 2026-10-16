@@ -13,6 +13,7 @@ let previousPage: string | undefined;
 
 function initialize() {
   if (!import.meta.env.PROD || location.hostname !== 'frozen-choco.github.io' || !/^G-[A-Z0-9]+$/.test(config.measurementId)) return false;
+  try {if (localStorage.getItem('gallery-analytics-disabled') === '1') return false;} catch {return false;}
   if (initialized) return true;
   window.dataLayer ??= [];
   window.gtag ??= function (..._args: unknown[]) {window.dataLayer!.push(arguments);};
@@ -35,10 +36,10 @@ export function trackPage(page: Page, title: string) {
   // Virtual paths keep hash-based categories distinct in GA4's standard reports.
   const url = `${location.origin}/my-gallery/${page}`;
   if (url === previousPage) return;
-  window.gtag!('set', {page_location: url, page_title: `${title} | FORMA`});
+  window.gtag!('set', {page_location: url, page_title: `${title} | 冷凍チョコ ギャラリー`});
   window.gtag!('event', 'page_view', {
     page_location: url,
-    page_title: `${title} | FORMA`,
+    page_title: `${title} | 冷凍チョコ ギャラリー`,
     page_referrer: previousPage ?? document.referrer,
   });
   previousPage = url;

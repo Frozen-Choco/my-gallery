@@ -96,8 +96,9 @@ export function App() {
   return <>
     <a href="#main" className="skip">コンテンツへ移動</a>
     <aside className={`sidebar${sidebarOpen ? ' open' : ''}`} id="sidebar" inert={mobile && !sidebarOpen}>
-      <a className="brand" href="./" aria-label="FORMA ホーム"><span className="brand-mark">✳</span> forma<span className="brand-dot">.</span></a>
+      <a className="brand" href="./" aria-label="冷凍チョコ ギャラリー ホーム"><span className="brand-mark" aria-hidden="true">✳</span><span className="brand-name"><span>冷凍チョコ</span><span>ギャラリー</span></span></a>
       <nav aria-label="ライブラリ">{navigation.map(nav => <button key={nav.page} className={`nav-item${page === nav.page ? ' active' : ''}`} data-page={nav.page} aria-current={page === nav.page ? 'page' : undefined} onClick={() => navigate(nav.page)}><span><Icon name={nav.icon}/></span><span>{titles[nav.page]}</span></button>)}</nav>
+      <a className="privacy-link" href="./privacy.html">プライバシー</a>
     </aside>
     <div className="workspace"><main id="main"><section className="catalog" aria-labelledby="catalog-title">
       <div className="catalog-heading"><div className="section-title"><button id="menu-button" className="icon-button mobile-only" aria-label="メニューを開く" aria-expanded={sidebarOpen} onClick={() => setSidebarOpen(open => !open)}><Icon name="menu"/></button><h1 id="catalog-title">{titles[page]}</h1></div>
