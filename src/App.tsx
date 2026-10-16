@@ -2,6 +2,7 @@ import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {trackDetail, trackPage} from './analytics';
 import {animatedPage, exampleCatalogs, matchItems, pageFromHash, titles} from './catalog';
 import {loadModelCatalog} from './catalog/models';
+import {Brand} from './components/Brand';
 import {DetailDialog} from './components/DetailDialog';
 import {Icon, type IconName} from './components/Icon';
 import {ModelCard} from './components/ModelPreview';
@@ -96,7 +97,7 @@ export function App() {
   return <>
     <a href="#main" className="skip">コンテンツへ移動</a>
     <aside className={`sidebar${sidebarOpen ? ' open' : ''}`} id="sidebar" inert={mobile && !sidebarOpen}>
-      <a className="brand" href="./" aria-label="冷凍チョコ ギャラリー ホーム"><span className="brand-mark" aria-hidden="true">✳</span><span className="brand-name"><span>冷凍チョコ</span><span>ギャラリー</span></span></a>
+      <Brand/>
       <nav aria-label="ライブラリ">{navigation.map(nav => <button key={nav.page} className={`nav-item${page === nav.page ? ' active' : ''}`} data-page={nav.page} aria-current={page === nav.page ? 'page' : undefined} onClick={() => navigate(nav.page)}><span><Icon name={nav.icon}/></span><span>{titles[nav.page]}</span></button>)}</nav>
       <a className="privacy-link" href="./privacy.html">プライバシー</a>
     </aside>
