@@ -11,7 +11,20 @@ import {Specimen} from './components/Specimen';
 import type {ExampleItem, Model, ModelCatalog, ModelStatus, Page, SitePage, Selection} from './types';
 
 const pageSize = 60;
-const navigation: {page: SitePage; icon: IconName}[] = [{page:'home',icon:'home'}, {page:'works',icon:'game'}, {page:'media',icon:'video'}, {page:'styles',icon:'grid'}, {page:'games',icon:'game'}, {page:'motion',icon:'motion'}, {page:'transitions',icon:'layers'}, {page:'models',icon:'cube'}];
+type NavigationItem = {page: SitePage; icon: IconName; label?: string};
+type NavigationEntry = (NavigationItem | {group: string; icon: IconName; children: NavigationItem[]}) & {divider?: boolean};
+const navigation: NavigationEntry[] = [
+  {page:'home', icon:'home', divider:true},
+  {page:'works', icon:'game', divider:true},
+  {page:'media', icon:'video'},
+  {group:'デザイン', icon:'grid', divider:true, children:[
+    {page:'styles', icon:'web', label:'ウェブ'}, {page:'games', icon:'game', label:'ゲーム'},
+  ]},
+  {group:'アニメーション', icon:'motion', children:[
+    {page:'motion', icon:'motion'}, {page:'transitions', icon:'layers'},
+  ]},
+  {page:'models', icon:'cube'},
+];
 function useModels(active: boolean) {
   const [catalog, setCatalog] = useState<ModelCatalog>({items: [], filters: ['すべて']});
   const [status, setStatus] = useState<ModelStatus>('idle');
@@ -112,6 +125,9 @@ export function App() {
   const isAnimated = animatedPage(page);
   const empty = matched.length === 0 && !(page === 'models' && ['idle', 'loading', 'error'].includes(models.status));
   const status = page === 'models' ? models.status : '';
+  function navigationButton(item: NavigationItem) {
+    return <button key={item.page} className={`nav-item${route === item.page ? ' active' : ''}`} data-page={item.page} aria-current={route === item.page ? 'page' : undefined} onClick={() => navigate(item.page)}><span><Icon name={item.icon}/></span><span>{item.label ?? titles[item.page]}</span></button>;
+  }
   return <>
     <a href="#main" className="skip">コンテンツへ移動</a>
     {mobile && sidebarOpen && <button type="button" className="sidebar-backdrop" aria-label="メニューの外側を押して閉じる" onClick={() => changeSidebar(false)}/>}
@@ -119,9 +135,12 @@ export function App() {
       {sidebarVisible && <button ref={sidebarCloseRef} type="button" className="icon-button sidebar-close" title="メニューを閉じる" aria-label="メニューを閉じる" aria-expanded={true} aria-controls="sidebar" onClick={() => changeSidebar(false)}><Icon name="collapse"/></button>}
       <div className="sidebar-content">
       <Brand/>
-      <nav aria-label="メインナビゲーション">{navigation.map(nav => <Fragment key={nav.page}>
-        {['home', 'works', 'styles'].includes(nav.page) && <hr className="sidebar-divider" aria-hidden="true"/>}
-        <button className={`nav-item${route === nav.page ? ' active' : ''}`} data-page={nav.page} aria-current={route === nav.page ? 'page' : undefined} onClick={() => navigate(nav.page)}><span><Icon name={nav.icon}/></span><span>{titles[nav.page]}</span></button>
+      <nav aria-label="メインナビゲーション">{navigation.map(entry => <Fragment key={'page' in entry ? entry.page : entry.group}>
+        {entry.divider && <hr className="sidebar-divider" aria-hidden="true"/>}
+        {'page' in entry ? navigationButton(entry) : <div className="nav-group" role="group" aria-label={entry.group}>
+          <div className="nav-group-title"><Icon name={entry.icon}/><span>{entry.group}</span></div>
+          <div className="nav-children">{entry.children.map(navigationButton)}</div>
+        </div>}
       </Fragment>)}</nav>
       <a className="privacy-link" href="./privacy.html">プライバシー</a>
       </div>

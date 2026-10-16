@@ -6,6 +6,7 @@
   --heading-font: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
   --content-gutter: 40px;
   --header-height: 99px;
+  --menu-inset: calc((var(--header-height) - 44px) / 2);
 }
 .sidebar-backdrop { position: fixed; inset: 0; z-index: 19; width: 100%; height: 100%; padding: 0; border: 0; border-radius: 0; background: #291b1626; cursor: default; touch-action: none; }
 .sidebar {
@@ -34,8 +35,13 @@
   background: #fff3d6; color: #941936;
 }
 .site-header .menu-open:hover { background: #fffdf5; }
-.site-header .section-title { gap: 14px; }
+.site-header .section-title { gap: var(--menu-inset); }
 .nav-item { font-family: var(--heading-font); font-weight: 700; }
+.nav-group { margin: 8px 0 14px; }
+.nav-group-title { display: flex; align-items: center; gap: 10px; padding: 10px; font: 700 11px var(--heading-font); }
+.nav-group-title svg { width: 17px; height: 17px; }
+.nav-children { margin-left: 18px; padding-left: 8px; border-left: 1px solid #e8d9b6; }
+.nav-children .nav-item { padding-block: 10px; margin-bottom: 2px; }
 .nav-item:hover { background: #f5e4be; }
 .nav-item.active { background: #f4d9cf; color: #9d1c3c; }
 .sidebar-divider { border: 0; border-top: 1px solid #e8d9b6; margin: 12px 0; }
@@ -51,8 +57,8 @@
 }
 .site-header.menu-visible .catalog-heading {
   max-width: none;
-  padding-block: calc((var(--header-height) - 44px) / 2);
-  padding-left: calc((var(--header-height) - 44px) / 2);
+  padding-block: var(--menu-inset);
+  padding-left: var(--menu-inset);
 }
 .site-header h1 {
   font-family: var(--heading-font);
@@ -139,7 +145,7 @@
 }
 @media (max-width: 360px) {
   .site-header { --header-brand-width: 88px; }
-  .site-header.menu-visible .section-title { max-width: calc(100% - var(--header-brand-width) - 8px); gap: 6px; }
+  .site-header.menu-visible .section-title { max-width: calc(100% - var(--header-brand-width) - 8px); }
 }
 /* The header and its logo travel by the same sidebar width, with the same timing. */
 @media (min-width: 761px) {

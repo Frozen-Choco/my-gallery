@@ -17,6 +17,26 @@ function fixtureModels(count: number) {
   return Array.from({length: count}, (_, i) => ({id: `model_${String(i + 1).padStart(4,'0')}`, title_ja: `モデル ${String(i + 1).padStart(4,'0')}`, category: i % 2 ? 'household' : 'furniture', triangles: 640, vertices: 352, dimensions_m: [1, 2, 3], glb_bytes: 1000, blend_bytes: 2000, blender_version: '4.3.2'}));
 }
 describe('catalog interaction after the React migration', () => {
+  it('separates published games from game design and groups both animation pages', async () => {
+    const user = userEvent.setup(); renderApp();
+    await user.click(screen.getByRole('button', {name:'メニューを開く'}));
+    const design = screen.getByRole('group', {name:'デザイン'});
+    const animation = screen.getByRole('group', {name:'アニメーション'});
+    expect(within(design).getByRole('button', {name:'ウェブ'})).toBeTruthy();
+    const publishedGames = screen.getAllByRole('button', {name:'ゲーム'}).find(button => !button.closest('[role="group"]'))!;
+    await user.click(publishedGames);
+    expect(location.hash).toBe('#works');
+    expect(screen.getByRole('heading', {level:1, name:'ゲーム'})).toBeTruthy();
+    await user.click(within(design).getByRole('button', {name:'ゲーム'}));
+    expect(location.hash).toBe('#games');
+    expect(screen.getByRole('heading', {level:1, name:'ゲームUI'})).toBeTruthy();
+    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(12);
+    for (const [name, hash] of [['モーション','#motion'], ['トランジション','#transitions']]) {
+      await user.click(within(animation).getByRole('button', {name}));
+      expect(location.hash).toBe(hash);
+      expect(screen.getByRole('heading', {level:1, name})).toBeTruthy();
+    }
+  });
   it('starts desktop navigation closed and preserves its toggle state across page navigation', async () => {
     const user = userEvent.setup(); renderApp();
     expect(document.querySelector('#sidebar')?.hasAttribute('inert')).toBe(true);
@@ -43,7 +63,7 @@ describe('catalog interaction after the React migration', () => {
     expect(document.activeElement).toBe(screen.getByRole('button', {name:'メニューを閉じる'}));
     expect(within(document.querySelector('.site-header')!).queryByRole('link', {name:'冷凍チョコ ギャラリー ホーム'})).toBeNull();
     expect(document.querySelector('#sidebar')?.hasAttribute('inert')).toBe(false);
-    await user.click(screen.getByRole('button', {name:'UIデザイン'}));
+    await user.click(screen.getByRole('button', {name:'ウェブ'}));
     expect(screen.getByRole('button', {name:'メニューを閉じる'}).getAttribute('aria-expanded')).toBe('true');
     expect(document.querySelector('.workspace')?.classList.contains('sidebar-collapsed')).toBe(false);
     expect(screen.queryByRole('button', {name:'メニューの外側を押して閉じる'})).toBeNull();
@@ -66,7 +86,7 @@ describe('catalog interaction after the React migration', () => {
     expect(location.hash).toBe('');
     expect(screen.queryByRole('dialog')).toBeNull();
     await user.click(menu);
-    await user.click(screen.getByRole('button', {name:'動画'}));
+    await user.click(screen.getByRole('button', {name:'メディア'}));
     expect(location.hash).toBe('#media');
     menu = screen.getByRole('button', {name:'メニューを開く'});
     expect(menu.getAttribute('aria-expanded')).toBe('false');
@@ -80,9 +100,9 @@ describe('catalog interaction after the React migration', () => {
     const user = userEvent.setup(); renderApp();
     expect(screen.getByRole('heading', {name:'ホーム', level:1})).toBeTruthy();
     expect(screen.queryByRole('searchbox')).toBeNull();
-    expect(screen.getByRole('link', {name:'UIデザイン'}).getAttribute('href')).toBe('#styles');
+    expect(screen.getByRole('link', {name:'ウェブデザイン'}).getAttribute('href')).toBe('#styles');
     await user.click(screen.getByRole('button', {name:'メニューを開く'}));
-    await user.click(screen.getByRole('button', {name:'UIデザイン'}));
+    await user.click(screen.getByRole('button', {name:'ウェブ'}));
     expect(location.hash).toBe('#styles');
     expect(document.querySelectorAll('.style-card').length).toBe(16);
     history.replaceState(null, '', '/#home');
@@ -100,7 +120,7 @@ describe('catalog interaction after the React migration', () => {
     expect(game.getAttribute('rel')).toContain('noopener');
     expect(screen.queryByRole('searchbox')).toBeNull();
     await user.click(screen.getByRole('button', {name:'メニューを開く'}));
-    await user.click(screen.getByRole('button', {name:'動画'}));
+    await user.click(screen.getByRole('button', {name:'メディア'}));
     expect(screen.getByRole('link', {name:'冷凍チョコのYouTubeチャンネル（新しいタブ）'}).getAttribute('href')).toBe('https://www.youtube.com/channel/UCFH81ruwAfy-d2TzVRjsJFA');
     expect(screen.queryByText('ニコニコ')).toBeNull();
     expect(screen.getByRole('link', {name:'冷凍チョコ ギャラリー ホーム'}).getAttribute('href')).toBe('#home');
@@ -137,7 +157,7 @@ describe('catalog interaction after the React migration', () => {
     const user = userEvent.setup(); renderApp();
     await user.click(screen.getByRole('button', {name:'メニューを開く'}));
     for (const [label, count] of [['ゲームUI',12], ['モーション',13], ['トランジション',12]] as const) {
-      await user.click(screen.getByRole('button', {name:label}));
+      await user.click(label === 'ゲームUI' ? within(screen.getByRole('group', {name:'デザイン'})).getByRole('button', {name:'ゲーム'}) : screen.getByRole('button', {name:label}));
       expect(document.querySelectorAll('.style-card').length).toBe(count);
       const preview = document.querySelector<HTMLButtonElement>('#gallery .preview-button, #gallery .motion-stage')!;
       await user.click(preview);

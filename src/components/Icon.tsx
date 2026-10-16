@@ -1,5 +1,6 @@
 const paths = {
   home: 'm3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9',
+  web: 'M3 4h18v16H3zM3 9h18M7 6.5h.01M10 6.5h.01',
   video: 'M4 5h16v14H4zM10 9l5 3-5 3z',
   arrow: 'M5 12h14m-6-6 6 6-6 6',
   cube: 'm12 3 9 5v8l-9 5-9-5V8zM3 8l9 5 9-5M12 13v8M7.5 5.5l9 5',
