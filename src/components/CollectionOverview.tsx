@@ -11,7 +11,7 @@ function PreviewRow({label, destination, entries, paused, onOpen, onNavigate}: {
   const [edges, setEdges] = useState({start:true, end:true});
   useEffect(() => {
     const rail = ref.current!;
-    const update = () => setEdges({start:rail.scrollLeft < 2, end:rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 2});
+    const update = () => setEdges({start:rail.scrollLeft <= 4, end:rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 4});
     update();
     rail.addEventListener('scroll', update, {passive:true});
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update);
@@ -25,12 +25,14 @@ function PreviewRow({label, destination, entries, paused, onOpen, onNavigate}: {
   }
   return <section className="preview-row" aria-labelledby={`${id}-title`}>
     <div className="preview-row-heading"><h2 id={`${id}-title`}>{label}</h2><div className="preview-row-actions">
-      <button className="rail-arrow" aria-label={`${label}を左へ送る`} aria-controls={`${id}-rail`} disabled={edges.start} onClick={() => scroll(-1)}>←</button>
-      <button className="rail-arrow" aria-label={`${label}を右へ送る`} aria-controls={`${id}-rail`} disabled={edges.end} onClick={() => scroll(1)}>→</button>
       <a href={`#${destination}`} onClick={event => {if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button === 0) {event.preventDefault(); onNavigate(destination);}}}>すべて見る <span aria-hidden="true">→</span></a>
     </div></div>
+    <div className="preview-rail-frame">
     <div className="preview-rail" ref={ref} id={`${id}-rail`}>
       {entries.slice(0, previewLimit).map(entry => <ExampleCard key={`${entry.page}:${entry.item.id}`} page={entry.page} item={entry.item} paused={paused} onOpen={() => onOpen(entry)}/>)}
+    </div>
+    <button className="rail-arrow rail-arrow-left" aria-label={`${label}を左へ送る`} aria-controls={`${id}-rail`} disabled={edges.start} onClick={() => scroll(-1)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
+    <button className="rail-arrow rail-arrow-right" aria-label={`${label}を右へ送る`} aria-controls={`${id}-rail`} disabled={edges.end} onClick={() => scroll(1)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
     </div>
   </section>;
 }

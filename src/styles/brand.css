@@ -22,9 +22,9 @@
 .brand-gallery { font-family: var(--heading-font); font-weight: 900; fill: var(--brand-chocolate); }
 .brand-header .brand-gallery { fill: #fff3d6; }
 @media (forced-colors: active) {
-  .brand-ice, .brand-chocolate, .brand-gallery { fill: LinkText; }
+  .brand-ice, .brand-chocolate, .brand-drop, .brand-gallery { fill: LinkText; }
   .brand-chocolate-strokes, .brand-side-gallery { stroke: LinkText; }
   .brand-facets { display: none; }
-  .brand-outline-strokes { display: none; }
+  .brand-outline-strokes, .brand-drop-glints { display: none; }
   .brand-ice-outlined { stroke: none; }
 }
