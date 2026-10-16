@@ -1,7 +1,7 @@
-import {useLayoutEffect, useRef} from 'react';
+import {useLayoutEffect, useRef, type ReactNode} from 'react';
 
 /** Measure only on resize; the opening/closing frames use compositor transforms. */
-export function SidebarSurface() {
+export function SidebarPanel({children}: {children: ReactNode}) {
   const ref = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const surface = ref.current;
@@ -20,5 +20,5 @@ export function SidebarSurface() {
     observer.observe(surface);
     return () => observer.disconnect();
   }, []);
-  return <div ref={ref} className="sidebar-surface" aria-hidden="true"/>;
+  return <div ref={ref} className="sidebar-panel">{children}</div>;
 }

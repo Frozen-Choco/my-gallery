@@ -3,7 +3,7 @@ import {trackDetail, trackPage} from './analytics';
 import {animatedPage, collectionAllRoutes, collectionFor, collectionPages, exampleCatalogs, matchItems, pageFromHash, titles} from './catalog';
 import {loadModelCatalog} from './catalog/models';
 import {Brand} from './components/Brand';
-import {SidebarSurface} from './components/SidebarSurface';
+import {SidebarPanel} from './components/SidebarPanel';
 import {DetailDialog} from './components/DetailDialog';
 import {Icon, type IconName} from './components/Icon';
 import {ModelCard} from './components/ModelPreview';
@@ -142,7 +142,7 @@ export function App() {
     {mobile && sidebarOpen && <button type="button" className="sidebar-backdrop" aria-label="メニューの外側を押して閉じる" onClick={() => changeSidebar(false)}/>}
     <div className={`sidebar-space${sidebarVisible ? ' open' : ''}`} aria-hidden="true"/>
     <aside className={`sidebar${sidebarVisible ? ' open' : ''}`} id="sidebar" inert={!sidebarVisible} aria-hidden={!sidebarVisible}>
-      <SidebarSurface/>
+      <SidebarPanel>
       <button ref={sidebarCloseRef} type="button" className="icon-button sidebar-close" title="メニューを閉じる" aria-label="メニューを閉じる" aria-expanded={true} aria-controls="sidebar" onClick={() => changeSidebar(false)}><Icon name="collapse"/></button>
       <div className="sidebar-content">
       <Brand/>
@@ -152,9 +152,10 @@ export function App() {
       </Fragment>)}</nav>
       <a className="privacy-link" href="./privacy.html">プライバシー</a>
       </div>
+      </SidebarPanel>
     </aside>
     <div className={`workspace${mobile && sidebarVisible ? ' menu-obscured' : ''}${!mobile && !desktopSidebarOpen ? ' sidebar-collapsed' : ''}`}><header className={`site-header${!sidebarVisible ? ' menu-visible' : ''}`}>
-      <div className="catalog-heading"><div className="section-title">{!sidebarVisible && <button ref={menuRef} id="menu-button" className="icon-button menu-open" title="メニューを開く" aria-label="メニューを開く" aria-expanded={false} aria-controls="sidebar" onClick={() => changeSidebar(true)}><Icon name="menu"/></button>}<h1 id="catalog-title">{titles[route]}</h1></div>
+      <div className="catalog-heading"><div className="section-title"><button ref={menuRef} id="menu-button" className={`icon-button menu-open${sidebarVisible ? ' is-hidden' : ''}`} aria-hidden={sidebarVisible} disabled={sidebarVisible} title="メニューを開く" aria-label="メニューを開く" aria-expanded={false} aria-controls="sidebar" onClick={() => changeSidebar(true)}><Icon name="menu"/></button><h1 id="catalog-title">{titles[route]}</h1></div>
       </div>
       <div className="header-brand-viewport" aria-hidden={!mobile && sidebarVisible} inert={!mobile && sidebarVisible}><Brand header/></div>
       </header><main id="main"><section className="catalog" aria-labelledby="catalog-title">
