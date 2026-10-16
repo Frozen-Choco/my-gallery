@@ -13,6 +13,8 @@
   border-right-color: #e8d9b6;
   color: #574037;
 }
+.sidebar-close { position: absolute; top: 4px; right: 8px; width: 36px; height: 36px; }
+.sidebar-close:hover { background: #f5e4be; }
 .nav-item { font-family: var(--heading-font); font-weight: 700; }
 .nav-item:hover { background: #f5e4be; }
 .nav-item.active { background: #f4d9cf; color: #9d1c3c; }

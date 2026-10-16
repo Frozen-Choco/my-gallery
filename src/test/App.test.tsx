@@ -19,18 +19,24 @@ describe('catalog interaction after the React migration', () => {
     const user = userEvent.setup(); renderApp();
     const toggle = screen.getByRole('button', {name:'メニューを閉じる'});
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(toggle.closest('#sidebar')).toBeTruthy();
+    expect(screen.queryByRole('button', {name:'メニューを開く'})).toBeNull();
     await user.click(toggle);
-    expect(toggle.getAttribute('aria-label')).toBe('メニューを開く');
-    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    const menu = screen.getByRole('button', {name:'メニューを開く'});
+    expect(menu.closest('.site-header')).toBeTruthy();
+    expect(document.activeElement).toBe(menu);
+    expect(screen.queryByRole('button', {name:'メニューを閉じる'})).toBeNull();
+    expect(menu.getAttribute('aria-expanded')).toBe('false');
     expect(document.querySelector('#sidebar')?.hasAttribute('inert')).toBe(true);
     expect(document.querySelector('.workspace')?.classList.contains('sidebar-collapsed')).toBe(true);
     history.replaceState(null, '', '/#media');
     fireEvent(window, new HashChangeEvent('hashchange'));
-    expect(toggle.getAttribute('aria-expanded')).toBe('false');
-    await user.click(toggle);
+    expect(menu.getAttribute('aria-expanded')).toBe('false');
+    await user.click(menu);
+    expect(document.activeElement).toBe(screen.getByRole('button', {name:'メニューを閉じる'}));
     expect(document.querySelector('#sidebar')?.hasAttribute('inert')).toBe(false);
     await user.click(screen.getByRole('button', {name:'デザインスタイル'}));
-    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByRole('button', {name:'メニューを閉じる'}).getAttribute('aria-expanded')).toBe('true');
     expect(document.querySelector('.workspace')?.classList.contains('sidebar-collapsed')).toBe(false);
     expect(screen.queryByRole('button', {name:'メニューの外側を押して閉じる'})).toBeNull();
   });
@@ -38,10 +44,14 @@ describe('catalog interaction after the React migration', () => {
   it('dismisses the mobile sidebar from the backdrop without activating content behind it', async () => {
     vi.stubGlobal('matchMedia', vi.fn((query: string) => ({matches:query === '(max-width: 760px)',media:query,addEventListener:vi.fn(),removeEventListener:vi.fn()})));
     const user = userEvent.setup(); renderApp();
-    const menu = screen.getByRole('button', {name:'メニューを開く'});
+    let menu = screen.getByRole('button', {name:'メニューを開く'});
     await user.click(menu);
-    expect(menu.getAttribute('aria-expanded')).toBe('true');
+    const close = screen.getByRole('button', {name:'メニューを閉じる'});
+    expect(close.closest('#sidebar')).toBeTruthy();
+    expect(document.activeElement).toBe(close);
+    expect(screen.queryByRole('button', {name:'メニューを開く'})).toBeNull();
     await user.click(screen.getByRole('button', {name:'メニューの外側を押して閉じる'}));
+    menu = screen.getByRole('button', {name:'メニューを開く'});
     expect(menu.getAttribute('aria-expanded')).toBe('false');
     expect(screen.queryByRole('button', {name:'メニューの外側を押して閉じる'})).toBeNull();
     expect(document.activeElement).toBe(menu);
@@ -50,7 +60,12 @@ describe('catalog interaction after the React migration', () => {
     await user.click(menu);
     await user.click(screen.getByRole('button', {name:'メディア'}));
     expect(location.hash).toBe('#media');
+    menu = screen.getByRole('button', {name:'メニューを開く'});
     expect(menu.getAttribute('aria-expanded')).toBe('false');
+    expect(document.activeElement).toBe(menu);
+    await user.click(menu);
+    await user.click(screen.getByRole('button', {name:'メニューを閉じる'}));
+    expect(document.activeElement).toBe(screen.getByRole('button', {name:'メニューを開く'}));
   });
 
   it('opens home by default and preserves direct catalog URLs and browser history', async () => {

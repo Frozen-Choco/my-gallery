@@ -6,6 +6,7 @@ const paths = {
   game: 'M7 7h10c3 0 5 10 3 11-2 1-4-3-4-3H8s-2 4-4 3C2 17 4 7 7 7ZM8 9v5M5.5 11.5h5M15 10h.01M18 13h.01',
   motion: 'm10 6 9 6-9 6zM4 7v10', layers: 'm12 3 10 6-10 6L2 9zM3 13l9 5 9-5M3 17l9 5 9-5',
   search: 'm16 16 5 5', list: 'M9 5h12M9 12h12M9 19h12M3 5h1M3 12h1M3 19h1',
+  collapse: 'm14 6-6 6 6 6',
   close: 'm6 6 12 12M18 6 6 18', copy: 'M16 8V3H3v13h5', menu: 'M4 6h16M4 12h16M4 18h16', grid: '',
 };
 export type IconName = keyof typeof paths;
