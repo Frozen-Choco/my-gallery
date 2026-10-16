@@ -48,7 +48,7 @@ export function App() {
   const [modelPage, setModelPage] = useState(1);
   const [selection, setSelection] = useState<Selection | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(false);
   const [mobile, setMobile] = useState(() => window.matchMedia('(max-width: 760px)').matches);
   const sidebarVisible = mobile ? sidebarOpen : desktopSidebarOpen;
   const sidebarControlFocus = useRef(false);
@@ -115,7 +115,7 @@ export function App() {
   return <>
     <a href="#main" className="skip">コンテンツへ移動</a>
     {mobile && sidebarOpen && <button type="button" className="sidebar-backdrop" aria-label="メニューの外側を押して閉じる" onClick={() => changeSidebar(false)}/>}
-    <aside className={`sidebar${sidebarVisible ? ' open' : ''}`} id="sidebar" inert={!sidebarVisible}>
+    <aside className={`sidebar${sidebarVisible ? ' open' : ''}`} id="sidebar" inert={!sidebarVisible} aria-hidden={!sidebarVisible}>
       {sidebarVisible && <button ref={sidebarCloseRef} type="button" className="icon-button sidebar-close" title="メニューを閉じる" aria-label="メニューを閉じる" aria-expanded={true} aria-controls="sidebar" onClick={() => changeSidebar(false)}><Icon name="collapse"/></button>}
       <div className="sidebar-content">
       <Brand/>

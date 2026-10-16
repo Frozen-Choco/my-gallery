@@ -115,7 +115,7 @@
 .header-brand-viewport .brand-header {
   --brand-chocolate: #805136;
   position: absolute; top: 50%; right: var(--header-brand-inset);
-  width: var(--header-brand-width); height: auto; aspect-ratio: 335 / 165;
+  width: var(--header-brand-width); height: calc(var(--header-height) - 12px);
   margin: 0; color: #ffe2bb; pointer-events: auto;
   transform: translate(0, -50%);
   transition: transform 240ms cubic-bezier(.22,.61,.36,1);

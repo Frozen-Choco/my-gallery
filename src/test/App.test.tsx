@@ -15,8 +15,11 @@ function fixtureModels(count: number) {
   return Array.from({length: count}, (_, i) => ({id: `model_${String(i + 1).padStart(4,'0')}`, title_ja: `モデル ${String(i + 1).padStart(4,'0')}`, category: i % 2 ? 'household' : 'furniture', triangles: 640, vertices: 352, dimensions_m: [1, 2, 3], glb_bytes: 1000, blend_bytes: 2000, blender_version: '4.3.2'}));
 }
 describe('catalog interaction after the React migration', () => {
-  it('starts desktop navigation open and preserves its toggle state across page navigation', async () => {
+  it('starts desktop navigation closed and preserves its toggle state across page navigation', async () => {
     const user = userEvent.setup(); renderApp();
+    expect(document.querySelector('#sidebar')?.hasAttribute('inert')).toBe(true);
+    expect(screen.queryByRole('button', {name:'メニューを閉じる'})).toBeNull();
+    await user.click(screen.getByRole('button', {name:'メニューを開く'}));
     const toggle = screen.getByRole('button', {name:'メニューを閉じる'});
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
     expect(toggle.closest('#sidebar')).toBeTruthy();
@@ -76,6 +79,7 @@ describe('catalog interaction after the React migration', () => {
     expect(screen.getByRole('heading', {name:'ホーム', level:1})).toBeTruthy();
     expect(screen.queryByRole('searchbox')).toBeNull();
     expect(screen.getByRole('link', {name:'デザインスタイル'}).getAttribute('href')).toBe('#styles');
+    await user.click(screen.getByRole('button', {name:'メニューを開く'}));
     await user.click(screen.getByRole('button', {name:'デザインスタイル'}));
     expect(location.hash).toBe('#styles');
     expect(document.querySelectorAll('.style-card').length).toBe(16);
@@ -93,6 +97,7 @@ describe('catalog interaction after the React migration', () => {
     expect(game.getAttribute('href')).toBe('https://frozen-choco.itch.io/stardust-cradle');
     expect(game.getAttribute('rel')).toContain('noopener');
     expect(screen.queryByRole('searchbox')).toBeNull();
+    await user.click(screen.getByRole('button', {name:'メニューを開く'}));
     await user.click(screen.getByRole('button', {name:'メディア'}));
     expect(screen.getByRole('link', {name:'冷凍チョコのYouTubeチャンネル（新しいタブ）'}).getAttribute('href')).toBe('https://www.youtube.com/channel/UCFH81ruwAfy-d2TzVRjsJFA');
     expect(screen.queryByText('ニコニコ')).toBeNull();
@@ -128,6 +133,7 @@ describe('catalog interaction after the React migration', () => {
   });
   it('keeps all game, motion and transition specimens and clickable animated previews', async () => {
     const user = userEvent.setup(); renderApp();
+    await user.click(screen.getByRole('button', {name:'メニューを開く'}));
     for (const [label, count] of [['ゲームUI',12], ['モーション',13], ['トランジション',12]] as const) {
       await user.click(screen.getByRole('button', {name:label}));
       expect(document.querySelectorAll('.style-card').length).toBe(count);

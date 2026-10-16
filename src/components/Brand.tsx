@@ -4,7 +4,7 @@ export function Brand({header = false}: {header?: boolean}) {
   const id = useId();
   const letters = `${id}-frozen`, clip = `${id}-ice`, gradient = `${id}-gallery`, outline = `${id}-chocolate-outline`;
   return <a className={`brand${header ? ' brand-header' : ''}`} href="#home" aria-label="冷凍チョコ ギャラリー ホーム">
-    <svg className="brand-art" viewBox={header ? "40 10 335 165" : "0 0 360 240"} aria-hidden="true">
+    <svg className="brand-art" viewBox={header ? "35 -5 265 220" : "0 0 360 240"} preserveAspectRatio={header ? "xMaxYMid meet" : undefined} aria-hidden="true">
       <defs>
         <text id={letters} x="62" y="94" fontSize="65" letterSpacing="-3" className="brand-frozen">冷凍</text>
         <clipPath id={clip}><use href={`#${letters}`}/></clipPath>
@@ -18,7 +18,7 @@ export function Brand({header = false}: {header?: boolean}) {
           <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>}
       </defs>
-      <g transform={header ? "rotate(-8 145 65)" : undefined}>
+      <g transform={header ? "translate(-15 15) rotate(-45 145 65)" : undefined}>
       <g transform="translate(-20 -17) scale(1.23)">
         <use href={`#${letters}`} className="brand-ice"/>
         <g className="brand-facets" clipPath={`url(#${clip})`}>
@@ -27,7 +27,7 @@ export function Brand({header = false}: {header?: boolean}) {
         </g>
       </g>
       </g>
-      <g transform={header ? "translate(156 -78)" : undefined} filter={header ? `url(#${outline})` : undefined}>
+      <g transform={header ? "translate(76 -26)" : undefined} filter={header ? `url(#${outline})` : undefined}>
       <g className="brand-chocolate-strokes" fill="none" strokeWidth="10" strokeLinejoin="round" strokeLinecap="round">
         <path d="M67 128L103 119M61 143H108M86 124V150Q86 166 65 175"/>
         <path d="M126 137H148V170H124M125 154H147" strokeWidth="8"/>
@@ -35,7 +35,7 @@ export function Brand({header = false}: {header?: boolean}) {
       <path className="brand-chocolate" d="M168 120H203Q208 120 208 125V163C208 174 202 178 202 185C202 191 209 195 209 201C209 207 205 211 200 211C194 211 191 207 191 202C191 195 198 192 198 184C198 180 194 178 188 178H166A5 5 0 0 1 166 168H193Q198 168 198 163V130H168A5 5 0 0 1 168 120Z"/>
       </g>
       {!header && <path className="brand-divider" d="M228 34V199" fill="none" stroke={`url(#${gradient})`} strokeWidth="1" opacity=".3"/>}
-      <g className="brand-gallery" transform={header ? "translate(-20 0)" : undefined} fill="none" stroke={header ? "currentColor" : `url(#${gradient})`} strokeWidth="3.2" strokeLinejoin="miter" strokeLinecap="square">
+      <g className="brand-gallery" transform={header ? "translate(-60 45)" : undefined} fill="none" stroke={header ? "currentColor" : `url(#${gradient})`} strokeWidth="3.2" strokeLinejoin="miter" strokeLinecap="square">
         <path transform={header ? "translate(-115 101)" : undefined} d="M246 42L267 39M245 51L268 48M254 34L259 60M265 30L268 34M272 29L275 33"/>
         <path transform={header ? "translate(-69 68)" : undefined} d="M249 76L269 73L263 84M253 69L258 91"/>
         <path transform={header ? "translate(-26 31)" : undefined} d="M248 103H266M246 111H268Q266 122 250 126"/>
