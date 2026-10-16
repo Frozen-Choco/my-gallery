@@ -1,4 +1,5 @@
 import {useEffect, useRef, useState} from 'react';
+import {trackDownload} from '../analytics';
 import {formatCount, formatSize, modelRepository} from '../catalog/models';
 import type {Model} from '../types';
 
@@ -29,8 +30,8 @@ export function ModelImage({model, back = false}: {model: Model; back?: boolean}
 }
 export function Downloads({model}: {model: Model}) {
   return <div className="model-downloads">
-    <a href={model.glb} download={`${model.id}.glb`} aria-label={`${model.ja}のGLBをダウンロード`}>GLB <span>↓ {formatSize(model.glbBytes)}</span></a>
-    <a href={model.blend} download={`${model.id}.blend`} aria-label={`${model.ja}のBlenderファイルをダウンロード`}>Blend <span>↓ {formatSize(model.blendBytes)}</span></a>
+    <a href={model.glb} download={`${model.id}.glb`} onClick={() => trackDownload(model.id, 'glb')} aria-label={`${model.ja}のGLBをダウンロード`}>GLB <span>↓ {formatSize(model.glbBytes)}</span></a>
+    <a href={model.blend} download={`${model.id}.blend`} onClick={() => trackDownload(model.id, 'blend')} aria-label={`${model.ja}のBlenderファイルをダウンロード`}>Blend <span>↓ {formatSize(model.blendBytes)}</span></a>
   </div>;
 }
 export function ModelCard({model, onOpen}: {model: Model; onOpen: () => void}) {

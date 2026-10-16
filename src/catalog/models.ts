@@ -2,7 +2,7 @@ import type {Model, ModelCatalog} from '../types';
 
 export const modelRepository = 'https://github.com/Frozen-Choco/low-poly-models';
 const source = 'https://raw.githubusercontent.com/Frozen-Choco/low-poly-models/main/';
-const categoryNames: Record<string, string> = {furniture: '家具', household: '生活小物', street: '街の設備'};
+const categoryNames: Record<string, string> = {furniture: '家具', household: '生活小物', street: '街の設備', food: '食べ物'};
 const number = (value: unknown): number | null => typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
 const record = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 const safeSegment = (value: unknown): value is string => typeof value === 'string' && /^[a-z0-9_-]{1,100}$/i.test(value);

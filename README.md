@@ -79,3 +79,21 @@ npm run dev
 モデル詳細は3D表示を初期表示とし、ドラッグ・矢印キーによる回転、ホイール・ピンチによる拡大縮小、視点リセット、正面／背面写真の切り替えに対応します。`src/components/ModelPreview.tsx` が詳細を開いたときだけ `@google/model-viewer` 4.4.0（Apache-2.0、jsDelivr配信）と対象GLBを読み込み、閉じるとビューアを破棄します。読み込みエラー・タイムアウト時は再試行と写真表示を利用できます。ライブラリの公式資料：https://modelviewer.dev/docs/
 
 検索・一覧・ダイアログはReactで管理します。既存の見本の構図を維持するため、リポジトリ内の固定HTML/SVG見本のみ `Specimen` に渡します。外部のモデル名などはReactのテキストとして描画し、HTMLには挿入しません。モーションの監視と3Dビューアは部品の終了時に解除します。
+
+## アクセス計測（GA4）
+
+`src/analytics.config.json` の `measurementId` に、このサイトのウェブデータストリームの測定ID（`G-…`）を設定してビルドします。IDが空の場合、開発サーバー、localhostなど本番以外のホストではGoogleのタグを読み込まず、計測しません。測定IDは公開用識別子であり、管理画面を閲覧する権限や秘密鍵ではありません。
+
+管理画面はGoogle Analytics側で確認します。アクセス権を本人だけにし、サイトには統計表示や管理リンクを置きません。任意のGoogleシグナル・広告パーソナライズはコード側で無効にしています。
+
+| イベント | タイミング | 内容 |
+| --- | --- | --- |
+| `page_view` | 初期表示・カテゴリ切り替え | `/my-gallery/styles`、`/my-gallery/models`などの仮想パスと日本語タイトル |
+| `select_content` | 見本・モデルの詳細を開く | `content_type`（カテゴリ）、`item_id`（コンテンツID） |
+| `model_download` | GLB・Blendリンクをクリック | `item_id`、`file_format`（glb/blend） |
+
+ダウンロードはクリック数であり、転送完了数ではありません。検索文字列や編集した指示文は送信しません。検索・ソート・ページ分割・詳細を閉じる操作はページビューに数えません。
+
+GA4管理画面の「データストリーム → ウェブ → 拡張計測機能 → ページビュー → 詳細設定」で「ブラウザの履歴イベントに基づくページの変更」をオフにしてください。`send_page_view: false`だけでは履歴変更による自動ページビューを止められず、手動計測と重複します。詳細・ダウンロードの分析にはイベントスコープのカスタムディメンション `content_type`、`item_id`、`file_format`を登録します。自動の`file_download`とは別名なので、モデルのクリック数には`model_download`のみを使います。
+
+公式資料：https://developers.google.com/analytics/devguides/collection/ga4/views?hl=ja

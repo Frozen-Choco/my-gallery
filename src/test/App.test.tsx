@@ -4,6 +4,9 @@ import {fireEvent, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {App} from '../App';
 import {FakeViewer} from './setup';
+import {trackDetail, trackDownload} from '../analytics';
+
+vi.mock('../analytics', () => ({trackPage:vi.fn(), trackDetail:vi.fn(), trackDownload:vi.fn()}));
 
 function renderApp() {return render(<StrictMode><App/></StrictMode>);}
 function fixtureModels(count: number) {
@@ -23,6 +26,7 @@ describe('catalog interaction after the React migration', () => {
     expect(document.querySelector('#gallery')?.classList.contains('list-view')).toBe(true);
     const opener = screen.getByRole('button', {name:'Minimalism の見本と特徴を見る'});
     await user.click(opener);
+    expect(trackDetail).toHaveBeenLastCalledWith('styles', 'minimal');
     const dialog = screen.getByRole('dialog');
     expect(within(dialog).getByRole('heading', {name:'ミニマリズム'})).toBeTruthy();
     await user.click(within(dialog).getByText('AIへの指示例'));
@@ -64,6 +68,10 @@ describe('catalog interaction after the React migration', () => {
     await user.type(screen.getByRole('searchbox'), 'モデル 0999');
     expect(document.querySelectorAll('.model-card').length).toBe(1);
     expect(screen.getByRole('link', {name:'モデル 0999のGLBをダウンロード'}).getAttribute('href')).toContain('/model_0999.glb');
+    const download = screen.getByRole('link', {name:'モデル 0999のGLBをダウンロード'});
+    download.addEventListener('click', event => event.preventDefault());
+    await user.click(download);
+    expect(trackDownload).toHaveBeenLastCalledWith('model_0999', 'glb');
     await user.clear(screen.getByRole('searchbox'));
     await user.selectOptions(top.getByRole('combobox'), '17');
     await user.click(screen.getByRole('button', {name:'家具'}));

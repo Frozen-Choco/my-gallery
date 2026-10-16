@@ -1,4 +1,5 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {trackDetail, trackPage} from './analytics';
 import {animatedPage, exampleCatalogs, matchItems, pageFromHash, titles} from './catalog';
 import {loadModelCatalog} from './catalog/models';
 import {DetailDialog} from './components/DetailDialog';
@@ -50,6 +51,7 @@ export function App() {
   const paginationFocus = useRef(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const models = useModels(page === 'models');
+  useEffect(() => {trackPage(page, titles[page]);}, [page]);
   const reset = useCallback(() => {setFilter('すべて'); setQuery(''); setModelPage(1);}, []);
   const navigate = useCallback((next: Page) => {
     setPage(next); reset(); setSidebarOpen(false); setSelection(null);
@@ -85,6 +87,7 @@ export function App() {
     resultsRef.current?.querySelector<HTMLSelectElement>('[data-model-page]')?.focus({preventScroll: true});
   }, [currentPage]);
   function openDetail(item: ExampleItem | Model) {
+    trackDetail(page, item.id);
     setSelection(page === 'models' ? {page, item: item as Model} : {page, item: item as ExampleItem});
   }
   const isAnimated = animatedPage(page);
