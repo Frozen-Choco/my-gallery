@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@700;900&display=swap');
+
+:root {
+  --crimson: #b51f43;
+  --cream: #fff3d6;
+  --heading-font: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+  --content-gutter: 40px;
+}
+.sidebar {
+  background: var(--cream);
+  border-right-color: #e8d9b6;
+  color: #574037;
+}
+.nav-item { font-family: var(--heading-font); font-weight: 700; }
+.nav-item:hover { background: #f5e4be; }
+.nav-item.active { background: #f4d9cf; color: #9d1c3c; }
+.nav-library-start { border-top-color: #e8d9b6; }
+.sidebar .privacy-link { color: #77604e; }
+
+.site-header { background: var(--crimson); color: #fff8e7; }
+.site-header .catalog-heading {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 28px var(--content-gutter);
+  min-height: 99px;
+}
+.site-header h1 {
+  font-family: var(--heading-font);
+  font-weight: 900;
+  font-size: 26px;
+  letter-spacing: .04em;
+  line-height: 1.5;
+}
+.site-header .search-box { background: #fff8e7; border-color: #fff8e7; color: #897263; }
+.site-header .search-box input { color: #574037; }
+.site-header .search-box input::placeholder { color: #897263; }
+.site-header .search-box kbd { border-color: #e4d8bd; }
+.site-header .search-box:focus-within { box-shadow: 0 0 0 3px #fff8e740; }
+.site-header .icon-button:hover { background: #fff8e724; }
+.site-header :focus-visible { outline-color: #fff8e7; }
+.workspace main { padding-top: 28px; }
+
+/* Site headings only: specimen typography remains part of each example. */
+.card-title h2, .page-link h2, .published-game h2, .video-card h2,
+.dialog-top h2, .detail-block h3 {
+  font-family: var(--heading-font);
+  font-weight: 700;
+}
+@media (min-width: 1450px) { :root { --content-gutter: 50px; } }
+@media (max-width: 1150px) { :root { --content-gutter: 27px; } }
+@media (max-width: 760px) {
+  :root { --content-gutter: 22px; }
+  .site-header .catalog-heading { min-height: 80px; padding-block: 21px; gap: 17px; }
+  .site-header h1 { font-size: 24px; }
+  .workspace main { padding-top: 24px; }
+}

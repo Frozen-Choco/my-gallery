@@ -60,7 +60,7 @@ export function App() {
   const navigate = useCallback((next: SitePage) => {
     setPage(next); reset(); setSidebarOpen(false); setSelection(null);
     if (location.hash !== '#' + next) history.pushState(null, '', '#' + next);
-    document.getElementById('main')?.scrollIntoView({block: 'start'});
+    document.querySelector('.workspace')?.scrollIntoView({block: 'start'});
   }, [reset]);
   useEffect(() => {
     const media = window.matchMedia('(max-width: 760px)');
@@ -105,10 +105,11 @@ export function App() {
       <nav aria-label="メインナビゲーション">{navigation.map(nav => <button key={nav.page} className={`nav-item${route === nav.page ? ' active' : ''}${nav.page === 'styles' ? ' nav-library-start' : ''}`} data-page={nav.page} aria-current={route === nav.page ? 'page' : undefined} onClick={() => navigate(nav.page)}><span><Icon name={nav.icon}/></span><span>{titles[nav.page]}</span></button>)}</nav>
       <a className="privacy-link" href="./privacy.html">プライバシー</a>
     </aside>
-    <div className="workspace"><main id="main"><section className="catalog" aria-labelledby="catalog-title">
+    <div className="workspace"><header className="site-header">
       <div className="catalog-heading"><div className="section-title"><button id="menu-button" className="icon-button mobile-only" aria-label="メニューを開く" aria-expanded={sidebarOpen} onClick={() => setSidebarOpen(open => !open)}><Icon name="menu"/></button><h1 id="catalog-title">{titles[route]}</h1></div>
         {!personalPage && <label className="search-box"><Icon name="search"/><input ref={searchRef} id="search" type="search" placeholder={page === 'models' ? 'モデル名・カテゴリで検索' : isAnimated ? '効果・特徴で検索' : 'スタイル・特徴で検索'} autoComplete="off" aria-label={`${titles[page]}・キーワードを検索`} value={query} onChange={event => {setQuery(event.target.value); setModelPage(1);}}/><kbd>/</kbd></label>}
       </div>
+      </header><main id="main"><section className="catalog" aria-labelledby="catalog-title">
       {personalPage ? <PersonalPages page={personalPage}/> : <>
       <div className="filter-row"><div id="filters" className="filters" aria-label={page === 'models' ? 'カテゴリで絞り込む' : isAnimated ? '効果で絞り込む' : page === 'games' ? '見た目で絞り込む' : '印象で絞り込む'}>
         {catalog.filters.map(value => <button key={value} className={`filter-chip${filter === value ? ' active' : ''}`} aria-pressed={filter === value} data-filter={value} onClick={() => {setFilter(value); setModelPage(1);}}>{value}</button>)}
