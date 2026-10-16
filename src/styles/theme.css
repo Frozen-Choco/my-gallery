@@ -121,7 +121,7 @@
   width: var(--header-brand-width); height: calc(var(--header-height) - 12px);
   margin: 0; color: #ffe2bb; pointer-events: auto;
   transform: translate(0, -50%);
-  transition: transform 360ms cubic-bezier(.22,.61,.36,1);
+  transition: transform 240ms cubic-bezier(.22,.61,.36,1);
 }
 .site-header:not(.menu-visible) .brand-header {
   transform: translate(var(--header-brand-travel), -50%);
@@ -140,40 +140,22 @@
   .site-header { --header-brand-width: 88px; }
   .site-header.menu-visible .section-title { max-width: calc(100% - var(--header-brand-width) - 8px); }
 }
-/* Transform the complete panel so its background, logo and text stay together. */
+/* Restore the original slide: no scaling, masks or separate background layers. */
 .site-header .menu-open.is-hidden { visibility: hidden; pointer-events: none; }
-.sidebar, .sidebar.open { transform: none; clip-path: none; background: transparent; border: 0; box-shadow: none; }
-.sidebar { visibility: hidden; pointer-events: none; transition: visibility 0s 360ms; }
-.sidebar.open { visibility: visible; pointer-events: auto; transition-delay: 0s; }
-.sidebar-panel {
-  position: absolute; inset: 0;
-  background: var(--cream); border-right: 1px solid #e8d9b6;
-  border-radius: 0; transform-origin: 0 0;
-  transform: translate3d(var(--menu-inset), var(--menu-inset), 0) scale(var(--closed-scale-x, .2), var(--closed-scale-y, .06));
-  transition: transform 360ms cubic-bezier(.22,.61,.36,1);
-  will-change: transform;
+.sidebar {
+  border-radius: 0; box-shadow: none;
+  transform: translateX(-100%); visibility: hidden; pointer-events: none;
+  transition: transform 240ms cubic-bezier(.22,.61,.36,1), visibility 0s 240ms;
 }
-.sidebar.open .sidebar-panel { transform: translate3d(0, 0, 0) scale(1); }
-.sidebar-content, .sidebar-close { opacity: 1; transform: none; transition: none; }
-.sidebar-space { display: none; }
+.sidebar.open { transform: translateX(0); visibility: visible; pointer-events: auto; transition-delay: 0s; }
 @media (min-width: 761px) {
-  .workspace { transition: margin-left 360ms cubic-bezier(.22,.61,.36,1); }
-  /* Fill the space vacated by the workspace while the surface grows vertically. */
-  .sidebar-space {
-    display: block; position: fixed; inset: 0 auto 0 0; width: var(--sidebar); z-index: 18;
-    background: var(--cream); pointer-events: none; visibility: hidden;
-    transform: translate3d(-100%, 0, 0);
-    transition: transform 360ms cubic-bezier(.22,.61,.36,1), visibility 0s 360ms;
-    will-change: transform;
-  }
-  .sidebar-space.open { transform: translate3d(0, 0, 0); visibility: visible; transition-delay: 0s; }
+  .workspace { transition: margin-left 240ms cubic-bezier(.22,.61,.36,1); }
 }
 @media (max-width: 760px) {
   .workspace.menu-obscured * { animation-play-state: paused !important; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .header-brand-viewport .brand-header, .workspace, .sidebar, .sidebar-space,
-  .sidebar-panel { transition: none; }
+  .header-brand-viewport .brand-header, .workspace, .sidebar { transition: none; }
 }
 
 .catalog { container-type: inline-size; }
