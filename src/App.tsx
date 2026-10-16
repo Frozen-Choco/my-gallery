@@ -71,10 +71,9 @@ export function App() {
       if (event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey && !target?.closest('input,textarea,[contenteditable]') && !document.querySelector('dialog[open]')) {event.preventDefault(); searchRef.current?.focus();}
       if (event.key === 'Escape') setSidebarOpen(false);
     };
-    const outside = (event: MouseEvent) => {if (!(event.target as Element).closest('#sidebar,#menu-button')) setSidebarOpen(false);};
     media.addEventListener('change', resize); window.addEventListener('hashchange', hashchange); window.addEventListener('popstate', hashchange);
-    document.addEventListener('keydown', keydown); document.addEventListener('click', outside);
-    return () => {media.removeEventListener('change', resize); window.removeEventListener('hashchange', hashchange); window.removeEventListener('popstate', hashchange); document.removeEventListener('keydown', keydown); document.removeEventListener('click', outside);};
+    document.addEventListener('keydown', keydown);
+    return () => {media.removeEventListener('change', resize); window.removeEventListener('hashchange', hashchange); window.removeEventListener('popstate', hashchange); document.removeEventListener('keydown', keydown);};
   }, [reset]);
   useEffect(() => () => clearTimeout(toastTimer.current), []);
   const toast = useCallback((text: string) => {
@@ -100,13 +99,14 @@ export function App() {
   const status = page === 'models' ? models.status : '';
   return <>
     <a href="#main" className="skip">コンテンツへ移動</a>
+    {mobile && sidebarOpen && <button type="button" className="sidebar-backdrop" aria-label="メニューを閉じる" onClick={() => {setSidebarOpen(false); document.getElementById('menu-button')?.focus({preventScroll:true});}}/>}
     <aside className={`sidebar${sidebarOpen ? ' open' : ''}`} id="sidebar" inert={mobile && !sidebarOpen}>
       <Brand/>
       <nav aria-label="メインナビゲーション">{navigation.map(nav => <button key={nav.page} className={`nav-item${route === nav.page ? ' active' : ''}${nav.page === 'styles' ? ' nav-library-start' : ''}`} data-page={nav.page} aria-current={route === nav.page ? 'page' : undefined} onClick={() => navigate(nav.page)}><span><Icon name={nav.icon}/></span><span>{titles[nav.page]}</span></button>)}</nav>
       <a className="privacy-link" href="./privacy.html">プライバシー</a>
     </aside>
     <div className="workspace"><header className="site-header">
-      <div className="catalog-heading"><div className="section-title"><button id="menu-button" className="icon-button mobile-only" aria-label="メニューを開く" aria-expanded={sidebarOpen} onClick={() => setSidebarOpen(open => !open)}><Icon name="menu"/></button><h1 id="catalog-title">{titles[route]}</h1></div>
+      <div className="catalog-heading"><div className="section-title"><button id="menu-button" className="icon-button mobile-only" aria-label="メニューを開く" aria-expanded={sidebarOpen} aria-controls="sidebar" onClick={() => setSidebarOpen(open => !open)}><Icon name="menu"/></button><h1 id="catalog-title">{titles[route]}</h1></div>
       </div>
       </header><main id="main"><section className="catalog" aria-labelledby="catalog-title">
       {personalPage ? <PersonalPages page={personalPage}/> : <>
