@@ -4,8 +4,9 @@
   flex-shrink: 0;
   width: 180px;
   max-width: 100%;
-  height: 100px;
-  margin: -7px auto 24px;
+  height: 94px;
+  margin: 0 auto 24px;
+  color: #34251f;
   text-decoration: none;
   isolation: isolate;
 }
@@ -14,43 +15,40 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  overflow: visible;
 }
-.brand-chocolate-shadow { filter: drop-shadow(0 2px 1px #44291b22); }
 .brand-name {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   flex-direction: column;
-  padding-top: 19px;
+  padding: 9px 12px 0;
   font-family: 'Noto Sans JP', sans-serif;
   font-weight: 900;
   white-space: nowrap;
 }
-.brand-top { display: flex; font-size: 28px; line-height: 1.35; letter-spacing: -.06em; }
+.brand-top {
+  display: flex;
+  font-size: 30px;
+  line-height: 1.1;
+  letter-spacing: -.065em;
+}
 .brand-frozen {
-  color: #d8f7ff;
-  background: linear-gradient(155deg, #fff 18%, #d9f7ff 37%, #82cae2 39%, #ecfbff 42%, #e8faff 57%, #91d1e6 59%, #c8f0fa 80%);
+  color: #bee1ea;
+  background: linear-gradient(127deg, #ceeaf0 0 42%, #83b7c6 42% 44%, #f0fbfc 44% 45%, #bee1ea 45% 73%, #f0fbfc 73% 75%, #a4cdd9 75%);
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  -webkit-text-stroke: .55px #e7faff;
-  filter: drop-shadow(0 1px 0 #5396b1) drop-shadow(0 2px 0 #36708b);
 }
-.brand-cocoa {
-  color: #fff0d8;
-  text-shadow: 0 1px 0 #d5a879, 0 2px 0 #392319;
-}
+.brand-cocoa { color: #faf8f2; }
 .brand-gallery {
-  margin-top: 6px;
-  font-size: 21px;
-  line-height: 1.4;
-  letter-spacing: .06em;
-  color: #513529;
-  -webkit-text-stroke: 3px #f0f1eb;
-  paint-order: stroke fill;
+  margin-top: 20px;
+  color: #34251f;
+  font-size: 22px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -.045em;
 }
 @media (forced-colors: active) {
   .brand-art { display: none; }
-  .brand-frozen { background: none; -webkit-text-fill-color: currentColor; filter: none; }
-  .brand-name span { color: LinkText; -webkit-text-stroke: 0; text-shadow: none; }
+  .brand-frozen { background: none; -webkit-text-fill-color: currentColor; }
+  .brand-name span { color: LinkText; }
 }
