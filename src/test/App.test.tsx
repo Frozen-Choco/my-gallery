@@ -1,0 +1,96 @@
+import {StrictMode} from 'react';
+import {describe, expect, it, vi} from 'vitest';
+import {fireEvent, render, screen, within} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import {App} from '../App';
+import {FakeViewer} from './setup';
+
+function renderApp() {return render(<StrictMode><App/></StrictMode>);}
+function fixtureModels(count: number) {
+  return Array.from({length: count}, (_, i) => ({id: `model_${String(i + 1).padStart(4,'0')}`, title_ja: `モデル ${String(i + 1).padStart(4,'0')}`, category: i % 2 ? 'household' : 'furniture', triangles: 640, vertices: 352, dimensions_m: [1, 2, 3], glb_bytes: 1000, blend_bytes: 2000, blender_version: '4.3.2'}));
+}
+describe('catalog interaction after the React migration', () => {
+  it('preserves search, filters, view, detail, prompt editing and focus restoration', async () => {
+    const user = userEvent.setup(); renderApp();
+    expect(document.querySelectorAll('.style-card').length).toBe(16);
+    await user.type(screen.getByRole('searchbox'), 'ミニマリズム');
+    expect(document.querySelectorAll('.style-card').length).toBe(1);
+    await user.click(screen.getByRole('button', {name:'リセット ↺'}));
+    await user.click(screen.getByRole('button', {name:'楽しい・ポップ'}));
+    expect(document.querySelectorAll('.style-card').length).toBeLessThan(16);
+    await user.click(screen.getByRole('button', {name:'すべて'}));
+    await user.click(screen.getByRole('button', {name:'リスト表示'}));
+    expect(document.querySelector('#gallery')?.classList.contains('list-view')).toBe(true);
+    const opener = screen.getByRole('button', {name:'Minimalism の見本と特徴を見る'});
+    await user.click(opener);
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name:'ミニマリズム'})).toBeTruthy();
+    await user.click(within(dialog).getByText('AIへの指示例'));
+    const textarea = within(dialog).getByRole('textbox');
+    await user.clear(textarea); await user.type(textarea, '確認用の指示');
+    await user.click(within(dialog).getByRole('button', {name:'コピー'}));
+    expect(await navigator.clipboard.readText()).toBe('確認用の指示');
+    fireEvent(dialog, new Event('cancel', {cancelable:true}));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(document.activeElement).toBe(opener);
+    await user.keyboard('/'); expect(document.activeElement).toBe(screen.getByRole('searchbox'));
+  });
+  it('keeps all game, motion and transition specimens and clickable animated previews', async () => {
+    const user = userEvent.setup(); renderApp();
+    for (const [label, count] of [['ゲームUI',12], ['モーション',13], ['トランジション',12]] as const) {
+      await user.click(screen.getByRole('button', {name:label}));
+      expect(document.querySelectorAll('.style-card').length).toBe(count);
+      const preview = document.querySelector<HTMLButtonElement>('#gallery .preview-button, #gallery .motion-stage')!;
+      await user.click(preview);
+      expect(screen.getByRole('dialog')).toBeTruthy();
+      if (label !== 'ゲームUI') expect(document.querySelector('#gallery [data-motion]')?.classList.contains('is-paused')).toBe(true);
+      await user.click(screen.getByRole('button', {name:'閉じる'}));
+    }
+  });
+  it('paginates 1,000 models, searches all pages, resets filtered pages and preserves downloads', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ok:true, json:async () => fixtureModels(1000)}));
+    history.replaceState(null, '', '/#models');
+    const user = userEvent.setup(); renderApp();
+    await screen.findByText('1–60 / 1000件');
+    expect(document.querySelectorAll('.model-card').length).toBe(60);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const top = within(screen.getByRole('navigation', {name:'モデルのページ（上部）'}));
+    await user.click(top.getByRole('button', {name:'次のページ'}));
+    expect(screen.getByText('61–120 / 1000件')).toBeTruthy();
+    await user.selectOptions(top.getByRole('combobox'), '17');
+    expect(screen.getByText('961–1000 / 1000件')).toBeTruthy();
+    expect(document.querySelectorAll('.model-card').length).toBe(40);
+    expect((top.getByRole('button', {name:'次のページ'}) as HTMLButtonElement).disabled).toBe(true);
+    await user.type(screen.getByRole('searchbox'), 'モデル 0999');
+    expect(document.querySelectorAll('.model-card').length).toBe(1);
+    expect(screen.getByRole('link', {name:'モデル 0999のGLBをダウンロード'}).getAttribute('href')).toContain('/model_0999.glb');
+    await user.clear(screen.getByRole('searchbox'));
+    await user.selectOptions(top.getByRole('combobox'), '17');
+    await user.click(screen.getByRole('button', {name:'家具'}));
+    expect(screen.getByText('1–60 / 500件')).toBeTruthy();
+    await user.type(screen.getByRole('searchbox'), '該当しない');
+    expect(screen.getByText('該当する見本がありません。')).toBeTruthy();
+    await user.click(screen.getByRole('button', {name:'絞り込みを解除'}));
+    expect(screen.getByText('1–60 / 1000件')).toBeTruthy();
+  });
+  it('handles first-wheel zoom once, switches photos, resets and disposes the viewer', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ok:true, json:async () => fixtureModels(1)}));
+    history.replaceState(null, '', '/#models');
+    const user = userEvent.setup(); renderApp();
+    await user.click(await screen.findByRole('button', {name:'モデル 0001の詳細を見る'}));
+    await screen.findByRole('button', {name:'視点をリセット'});
+    const viewer = document.querySelector('model-viewer') as FakeViewer;
+    const stage = document.querySelector('[data-model-stage]')!;
+    fireEvent.wheel(stage, {deltaY:-30,deltaMode:0}); expect(viewer.zoom).toHaveBeenCalledExactlyOnceWith(1);
+    await user.click(screen.getByRole('button', {name:'背面'}));
+    expect(screen.getByRole('img', {name:'モデル 0001の背面'}).getAttribute('src')).toContain('/back.jpg');
+    fireEvent.wheel(stage, {deltaY:-30}); expect(viewer.zoom).toHaveBeenCalledTimes(1);
+    await user.click(screen.getByRole('button', {name:'3D'}));
+    await user.click(screen.getByRole('button', {name:'視点をリセット'}));
+    expect(viewer.jumpCameraToGoal).toHaveBeenCalledTimes(1);
+    await user.click(screen.getByRole('button', {name:'閉じる'}));
+    expect(document.querySelector('model-viewer')).toBeNull();
+    fireEvent.wheel(stage, {deltaY:-30}); expect(viewer.zoom).toHaveBeenCalledTimes(1);
+    expect(document.body.classList.contains('modal-open')).toBe(false);
+  });
+});

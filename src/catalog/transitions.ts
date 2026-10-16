@@ -1,5 +1,6 @@
+import type {ExampleItem, CatalogItem} from '../types';
 export const transitionFilters=['すべて','切り替え','フェード','ワイプ','移動','変形'];
-const entry=(id,name,ja,category,tags,description,traits,use,avoid)=>({id,name,ja,category:[category],tags,description,traits,use,avoid});
+const entry=(id: string,name: string,ja: string,category: string,tags: string[],description: string,traits: string[],use: string,avoid: string): ExampleItem=>({id,name,ja,category:[category],tags,description,traits,use,avoid});
 export const transitions=[
  entry('tr-cut','Cut','カット','切り替え',['直接','編集','瞬間'],'前の映像から次の映像へ、瞬時に切り替える。',['2つの映像を重ねずに切り替える','動きや音の区切りに合わせやすい','切り替え自体に時間を使わない'],'会話、テンポのよい編集、通常の場面転換','短い間隔で繰り返さず、視線や動作のつながりを確認する。'),
  entry('tr-dissolve','Cross Dissolve','ディゾルブ','フェード',['クロス','重なる','透明度'],'2つの映像を重ねながら、滑らかに入れ替える。',['前の映像が薄れ、次の映像が現れる','輪郭が一時的に重なる','時間や場所の移り変わりを柔らかく見せる'],'風景、回想、穏やかな場面転換','重なった被写体が見づらくならない長さにする。'),
@@ -19,8 +20,8 @@ export const transitions=[
 function scene(night=false){
  return night?`<svg viewBox="0 0 400 250" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="250" fill="#243b59"/><circle cx="294" cy="61" r="25" fill="#f6e8bb"/><circle cx="305" cy="51" r="23" fill="#243b59"/><g fill="#b4cccf"><circle cx="72" cy="40" r="2"/><circle cx="183" cy="30" r="1.7"/><circle cx="340" cy="107" r="2"/><circle cx="131" cy="79" r="1.6"/></g><path d="M0 185 97 66 194 185 260 113 400 209V250H0Z" fill="#587a8e"/><path d="m97 66-30 37 31-8 22 9Z" fill="#e0e5db"/><path d="M0 191Q67 156 141 192T279 188T400 175V250H0Z" fill="#284f60"/><path d="M0 221Q90 205 191 222T400 211V250H0Z" fill="#46737b"/><path d="M258 205h37m-55 15h64m-47 14h39" stroke="#a2bfc0" stroke-width="2" stroke-linecap="round"/></svg>`:`<svg viewBox="0 0 400 250" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="250" fill="#f1d5aa"/><circle cx="112" cy="74" r="32" fill="#d98653"/><path d="M0 150Q70 115 145 155T287 144T400 155V250H0Z" fill="#b77862"/><path d="M0 182Q88 146 168 178T315 174T400 185V250H0Z" fill="#d6a181"/><path d="M0 211Q80 188 174 212T400 203V250H0Z" fill="#718b85"/><path d="M280 208h48m-58 14h74m-42 13h30" stroke="#d8dcc3" stroke-width="2" stroke-linecap="round"/><path d="M291 81q7-8 14 0m8-11q7-8 14 0" fill="none" stroke="#9f715c" stroke-width="2" stroke-linecap="round"/></svg>`;
 }
-export function transitionMarkup(t,detail=false){
+export function transitionMarkup(t: CatalogItem,detail=false){
  const start=detail?`<div class="motion-stage transition-stage" role="img" aria-label="${t.ja}の見本">`:`<button class="motion-stage transition-stage" type="button" data-detail="${t.id}" aria-label="${t.ja}の見本と特徴を見る">`;
  return `<div class="transition-demo ${t.id}" data-motion="${t.id}">${start}<span class="transition-art" aria-hidden="true"><span class="tr-scene tr-base">${scene()}</span><span class="tr-scene tr-next">${scene(true)}</span><span class="tr-scene tr-return">${scene()}</span><span class="tr-curtain"></span></span>${detail?'</div>':'</button>'}</div>`;
 }
-export function transitionPrompt(t){return `「${t.ja}（${t.name}）」で2つの映像・画面を切り替えてください。\n\n動き：${t.description}\n特徴：${t.traits.join('。')}。\n用途：${t.use}\n注意：${t.avoid}\n\n前後の映像を十分に見せ、切り替えは短く明確にしてください。WebではCSSのtransform、opacity、clip-pathなどを効果に応じて使い、動画編集では同等のトランジションやマスクで再現してください。見本用の繰り返しと実際の切り替えを分け、Webのprefers-reduced-motionでは動きを省いてください。`;}
+export function transitionPrompt(t: ExampleItem){return `「${t.ja}（${t.name}）」で2つの映像・画面を切り替えてください。\n\n動き：${t.description}\n特徴：${t.traits.join('。')}。\n用途：${t.use}\n注意：${t.avoid}\n\n前後の映像を十分に見せ、切り替えは短く明確にしてください。WebではCSSのtransform、opacity、clip-pathなどを効果に応じて使い、動画編集では同等のトランジションやマスクで再現してください。見本用の繰り返しと実際の切り替えを分け、Webのprefers-reduced-motionでは動きを省いてください。`;}

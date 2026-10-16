@@ -1,9 +1,10 @@
+import type {CatalogItem} from '../types';
 // Only typography examples are shared; compositions are style-specific.
 const title='<h3 class="spec-title"><span lang="ja">サンプル</span><span lang="en">Sample</span></h3>';
 const rule='<div class="spec-rule"></div>';
-const art=kind=>`<div class="spec-art art-${kind}"><i></i><i></i><i></i></div>`;
-export function sampleMarkup(style){
-  const composition={
+const art=(kind: string)=>`<div class="spec-art art-${kind}"><i></i><i></i><i></i></div>`;
+export function sampleMarkup(style: CatalogItem){
+  const composition: Record<string,()=>string>={
     minimal:()=>`${title}${art('line')}`,
     swiss:()=>`${rule}${art('circle')}${title}`,
     neobrutal:()=>`${title}${art('star')}`,

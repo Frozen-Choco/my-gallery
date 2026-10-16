@@ -1,5 +1,6 @@
+import type {GameStyle, CatalogItem} from '../types';
 export const gameFilters=['すべて','レトロ','ファンタジー','SF','ポップ','ミニマル'];
-const entry=(id,name,ja,category,tags,description,traits,use,avoid,colors)=>({id,name,ja,category,tags,description,traits,use,avoid,colors});
+const entry=(id: string,name: string,ja: string,category: string[],tags: string[],description: string,traits: string[],use: string,avoid: string,colors: string[])=>({id,name,ja,category,tags,description,traits,use,avoid,colors});
 export const games=[
 entry('gs-classic','Classic Monochrome RPG','黒地・白枠RPG',['レトロ','ミニマル'],['ドラクエ','ドラゴンクエスト','モノクロ','等幅','黒い画面'], 'ドラクエ風の黒地・白枠。文字とカーソルだけで伝える。',['黒い面に白い細枠を置き、余白を一定にする','等幅文字と三角カーソルで選択状態を示す','影やグラデーションを使わず、明暗をはっきり分ける'],'クラシックRPG、ドット絵、短いコマンド中心のゲーム','小さい文字に頼らず、字間と行間を確保する。白枠を増やしすぎない。',['#050505','#ffffff']),
 entry('gs-blue','Blue Window RPG','青いグラデーションRPG',['レトロ'],['青','銀枠','ウィンドウ','JRPG'], '青の濃淡と銀色の枠で、懐かしいRPGの窓を作る。',['濃い青から明るい青へ変わる面を使う','銀色の二重枠でウィンドウの輪郭を強調','白文字に薄い影を付け、複数の窓を重ねる'],'レトロJRPG、パーティー制RPG、ドット絵の冒険','光沢や縁を強くしすぎない。重なる窓の前後関係を明確にする。',['#071665','#254cc5','#e1e9ff']),
@@ -20,7 +21,7 @@ const heading=`<div class="gs-heading">${ja}${en}</div>`;
 const rows=`<div class="gs-rows"><div class="gs-selected">${ja}</div><div>${en}</div></div>`;
 const ornament='<div class="gs-ornament"><i></i><i></i><i></i></div>';
 const corners='<i class="gs-corner tl"></i><i class="gs-corner tr"></i><i class="gs-corner bl"></i><i class="gs-corner br"></i>';
-export function gameMarkup(s){return ({
+export function gameMarkup(s: CatalogItem){const compositions: Record<string,()=>string>={
 'gs-classic':()=>`<div class="classic-small"></div><div class="classic-window">${rows}</div>`,
 'gs-blue':()=>`<div class="blue-back">${ornament}</div><div class="blue-window">${rows}</div>`,
 'gs-handheld':()=>`<div class="handheld-screen"><div class="pixel-flower"><i></i></div>${rows}<div class="handheld-track"><i></i><i></i><i></i></div></div>`,
@@ -33,5 +34,5 @@ export function gameMarkup(s){return ({
 'gs-arcade':()=>`<div class="arcade-grid"></div><div class="arcade-orbit"></div><div class="arcade-panel">${heading}</div>`,
 'gs-cozy':()=>`<div class="cozy-leaf"></div><div class="cozy-panel">${heading}${ornament}</div><div class="cozy-dot"></div>`,
 'gs-minimal':()=>`<div class="minimal-rail"></div><div class="minimal-panel">${rows}<div class="minimal-lines"><i></i><i></i><i></i></div></div>`
-})[s.id]();}
-export function gamePrompt(s){return `「${s.ja}（${s.name}）」の見た目を基調にゲームUIを制作してください。\n\n表現：${s.description}\n特徴：${s.traits.join('。')}。\n配色の目安：${s.colors.join(' / ')}。\n注意：${s.avoid}\n\nこの様式を、制作するゲームの画面構成や情報量に合わせて適用してください。見本の文言は実際の内容に置き換え、文字サイズとコントラスト、選択中・使用不可の区別を確保してください。`;}
+};return compositions[s.id]();}
+export function gamePrompt(s: GameStyle){return `「${s.ja}（${s.name}）」の見た目を基調にゲームUIを制作してください。\n\n表現：${s.description}\n特徴：${s.traits.join('。')}。\n配色の目安：${s.colors.join(' / ')}。\n注意：${s.avoid}\n\nこの様式を、制作するゲームの画面構成や情報量に合わせて適用してください。見本の文言は実際の内容に置き換え、文字サイズとコントラスト、選択中・使用不可の区別を確保してください。`;}

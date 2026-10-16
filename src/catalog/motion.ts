@@ -1,5 +1,6 @@
+import type {MotionStyle, CatalogItem} from '../types';
 export const motionFilters=['すべて','反応','登場','強調'];
-const entry=(id,name,ja,category,tags,description,traits,use,avoid,duration)=>({id,name,ja,category,tags,description,traits,use,avoid,duration});
+const entry=(id: string,name: string,ja: string,category: string[],tags: string[],description: string,traits: string[],use: string,avoid: string,duration: number): MotionStyle=>({id,name,ja,category,tags,description,traits,use,avoid,duration});
 export const motions=[
 entry('mo-hover','Lift','浮き上がり',['反応'],['hover','浮く','影','ボタン'], '少し浮かせて、注目や状態の変化を伝える。',['上へ移動して、要素が浮くように見せる','移動先で止まり、状態の変化を伝える','ホバー、選択、登場などをきっかけに適用できる'],'ボタン、リンクカード、選択肢','移動量を小さくし、触れた要素がポインタから逃げないようにする。',1000),
 entry('mo-underline','Underline Reveal','下線',['反応'],['リンク','hover','線','下線'], '下線を伸ばし、リンクの選択状態を軽く示す。',['左から右へ下線が伸びる','伸びきった位置で止まり、選択や強調を示す','文字の位置や大きさを変えない'],'テキストリンク、ナビゲーション','下線の有無だけで操作可能性を伝えず、文字色やフォーカス表示も整える。',1000),
@@ -40,15 +41,15 @@ function solidChocolate(){
  <path d="M52 95V135M12 131H88" fill="none" stroke="#bf3338" stroke-width="2"/>
  </svg><i class="chocolate-side side-left"></i><i class="chocolate-side side-right"></i><i class="chocolate-edge edge-top"></i><i class="chocolate-edge edge-bottom"></i></span></span>`;
 }
-export function motionMarkup(m,detail=false){
+export function motionMarkup(m: CatalogItem,detail=false){
  const ring=m.id==='mo-gauge'?`<svg class="motion-gauge" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><circle class="gauge-track" cx="50" cy="50" r="44"/><circle class="gauge-progress" cx="50" cy="50" r="44" pathLength="1"/></svg>`:'';
  const art=m.id==='mo-stagger'?`<span class="motion-stack">${Array.from({length:3},chocolate).join('')}</span>`:m.id==='mo-flip'?solidChocolate():chocolate();
  const stage=detail?`<div class="motion-stage" role="img" aria-label="${m.ja}の見本">`:`<button class="motion-stage" type="button" data-detail="${m.id}" aria-label="${m.ja}の見本と特徴を見る">`;
  return `<div class="motion-demo ${m.id}" data-motion="${m.id}">${stage}<span class="motion-art" aria-hidden="true">${ring}${art}</span>${detail?'</div>':'</button>'}</div>`;
 }
-export function motionPrompt(m){return `「${m.ja}（${m.name}）」をUIに適用してください。\n\n動き：${m.description}\n特徴：${m.traits.join('。')}。\n用途：${m.use}\n注意：${m.avoid}\n\nCSSのtransitionまたはanimationと@keyframesを使い、ホバー、クリック、選択、画面への登場など、適用するきっかけに合わせて再生してください。動きによってレイアウトを押し動かさず、キーボードとタッチでも操作できるようにします。prefers-reduced-motionでは動きを省き、情報や操作を失わないようにしてください。`;}
+export function motionPrompt(m: MotionStyle){return `「${m.ja}（${m.name}）」をUIに適用してください。\n\n動き：${m.description}\n特徴：${m.traits.join('。')}。\n用途：${m.use}\n注意：${m.avoid}\n\nCSSのtransitionまたはanimationと@keyframesを使い、ホバー、クリック、選択、画面への登場など、適用するきっかけに合わせて再生してください。動きによってレイアウトを押し動かさず、キーボードとタッチでも操作できるようにします。prefers-reduced-motionでは動きを省き、情報や操作を失わないようにしてください。`;}
 // Pause the timeline without resetting it. Preview activation opens details.
-export function mountMotions(root){
+export function mountMotions(root: HTMLElement){
  const media=window.matchMedia('(prefers-reduced-motion: reduce)');
  const disposers=[...root.querySelectorAll('[data-motion]')].map(demo=>{
   let visible=!('IntersectionObserver' in window);

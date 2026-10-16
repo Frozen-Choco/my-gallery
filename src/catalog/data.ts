@@ -1,5 +1,6 @@
+import type {DesignStyle} from '../types';
 export const filters=["すべて","シンプル","大胆・個性的","上品・落ち着き","温かい・自然","未来的・テック","楽しい・ポップ"];
-export const styles=[
+export const styles: DesignStyle[]=[
   {
     "id": "minimal",
     "name": "Minimalism",
@@ -463,4 +464,4 @@ export const styles=[
     "type": "等幅書体。コード風の見出しと十分な行間"
   }
 ];
-export function promptFor(style){return `「${style.name}（${style.ja}）」を基調にUIを制作してください。\n\n構成：${style.layout}。\n文字：${style.type}。\n配色の参考：${style.colors.join(' / ')}。用途に応じてコントラストを調整してください。\n特徴：${style.traits.join('。')}。\n注意：${style.avoid}\n\n装飾を足す前に、情報の優先順位と読みやすさを整えてください。スマートフォンに対応し、キーボード操作・フォーカス表示・十分な文字コントラストを確保してください。見本内の架空の文章は、今回の内容に置き換えてください。`;}
+export function promptFor(style: DesignStyle){return `「${style.name}（${style.ja}）」を基調にUIを制作してください。\n\n構成：${style.layout}。\n文字：${style.type}。\n配色の参考：${style.colors.join(' / ')}。用途に応じてコントラストを調整してください。\n特徴：${style.traits.join('。')}。\n注意：${style.avoid}\n\n装飾を足す前に、情報の優先順位と読みやすさを整えてください。スマートフォンに対応し、キーボード操作・フォーカス表示・十分な文字コントラストを確保してください。見本内の架空の文章は、今回の内容に置き換えてください。`;}

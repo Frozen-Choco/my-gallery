@@ -6,24 +6,28 @@
 
 公開先: https://frozen-choco.github.io/my-gallery/
 
-`docs/` がサイトのソース兼公開ファイルです。ビルドは不要です。GitHub Pages の公開元は `Deploy from a branch` → `main` → `/docs` に設定します。`main` に変更をpushすると、自動で公開されます。
+React＋TypeScript＋Viteで実装しています。編集対象は `src/` と `public/`、`docs/` はViteが生成する公開ファイルです。GitHub Pagesの公開元は引き続き `Deploy from a branch` → `main` → `/docs` です。ビルド結果を含めてpushすると公開されます。`docs/` は直接編集しません。
 
 ```sh
+npm ci
 npm run check
-git add docs README.md package.json server.mjs
+npm test
+npm run build
+git add src public docs index.html vite.config.ts tsconfig.json package.json package-lock.json README.md AGENTS.md
 git commit -m "Update gallery"
 git push origin main
 ```
 
 ## 起動
 
-Node.js 22以降で、プロジェクトのディレクトリから実行します。依存パッケージのインストールやビルドは不要です。
+Node.js 22.12以降（推奨は最新の22 LTS）を使います。
 
 ```sh
+npm ci
 npm run dev
 ```
 
-http://127.0.0.1:4173 を開きます。構文確認は `npm run check`。
+開発画面は http://127.0.0.1:5173 。`npm run check` はTypeScriptの型チェック、`npm test` は操作・データ取得の回帰テストです。`npm run build` 後の `npm run preview` で本番ビルドを確認できます。GitHub Pagesと同じサブパスで確認する場合は `node server.mjs` を実行し、http://127.0.0.1:4173/my-gallery/ を開きます。
 
 ## 機能
 
@@ -37,16 +41,17 @@ http://127.0.0.1:4173 を開きます。構文確認は `npm run check`。
 
 ## 編集
 
-- `docs/data.js`：スタイルの情報、指示例の生成
-- `docs/samples.js`：共通の文言とスタイル別の見本構成
-- `docs/styles.css`：画面と各スタイル見本のCSS
-- `docs/games.js` / `docs/games.css`：ゲームUIの視覚スタイル情報・指示例・独自レイアウト
-- `docs/motion.js` / `docs/motion.css`：モーションの情報・再生制御・CSSアニメーション
-- `docs/transitions.js` / `docs/transitions.css`：画面・映像の切り替え効果、共通風景、説明・指示例
-- `docs/app.js`：検索・フィルター・詳細ダイアログ
-- `docs/index.html`：ページの基本構成
+- `src/App.tsx`：カテゴリ、検索、絞り込み、ページ分割、表示形式
+- `src/components/`：カード、詳細ダイアログ、3Dビューア、見本表示
+- `src/catalog/data.ts` / `samples.ts`：デザインスタイルの情報・見本・指示例
+- `src/catalog/games.ts` / `motion.ts` / `transitions.ts`：各ジャンルの情報・見本
+- `src/catalog/models.ts`：外部モデルカタログの取得・検証
+- `src/styles/`：既存の見た目とCSSアニメーション
+- `public/`：アイコン、保存済みモデルカタログ、GitHub Pages設定
+- `src/test/`：検索、1,000件ページ分割、詳細、コピー、3D入力、カタログ取得のテスト
+- `index.html` / `src/main.tsx`：ページの入口
 
-新しいスタイルは `styles` に情報を追加し、そのIDをクラス名としてCSSを追加します。文言は `docs/samples.js` の共通部品から使い、スタイルごとに構図・装飾を設計します。一覧・詳細は同じ見本を呼び出します。見本は「サンプル」「Sample」のみで、件数やサイト固有の文言を含めません。配色だけの差分にせず、各様式の強みが出る文字組みや情報配置を使ってください。別ジャンルを増やす際は、モーションの再生・停止やトランジションの時間軸など、ジャンル固有のプレビューを追加できます。
+新しいスタイルは `styles` に情報を追加し、そのIDをクラス名としてCSSを追加します。文言は `src/catalog/samples.ts` の共通部品から使い、スタイルごとに構図・装飾を設計します。一覧・詳細は同じ見本を呼び出します。見本は「サンプル」「Sample」のみで、件数やサイト固有の文言を含めません。配色だけの差分にせず、各様式の強みが出る文字組みや情報配置を使ってください。別ジャンルを増やす際は、モーションの再生・停止やトランジションの時間軸など、ジャンル固有のプレビューを追加できます。
 
 見本は特定の企業・製品の画面をコピーしたものではなく、このライブラリのための架空のUIです。分類には歴史的様式・視覚効果・レイアウト手法が混在します。配色と用途は編集上の提案で、必須の定義ではありません。
 
@@ -62,12 +67,15 @@ http://127.0.0.1:4173 を開きます。構文確認は `npm run check`。
 
 `#models` は `Frozen-Choco/low-poly-models` の `main/catalog.json` を閲覧時に取得します。モデルを追加する際は、同リポジトリのカタログと `assets/{category}/{id}/` 内の `preview.jpg`、`back.jpg`、`{id}.glb`、`{id}.blend` を更新してください。サイト側の再公開は不要です（開いているページは再読み込み）。外部リポジトリへの書き込みは行いません。
 
-- `docs/models.js`：カタログ取得・データ検証・カード・詳細・ダウンロードリンク
-- `docs/models.css`：モデル一覧と詳細の表示
-- `docs/models-catalog.json`：取得失敗時に使う保存済みカタログ。モデル追加時の必須更新ではありません。
+- `src/catalog/models.ts`：カタログ取得・データ検証
+- `src/components/ModelPreview.tsx`：カード・詳細・写真・3D・ダウンロードリンク
+- `src/styles/models.css`：モデル一覧と詳細の表示
+- `public/models-catalog.json`：取得失敗時に使う保存済みカタログ。モデル追加時の必須更新ではありません。
 
 一覧の取得に失敗した場合は保存済みカタログを表示し、再読み込みを案内します。画像とダウンロードファイルは配布元へ直接リンクするため、配布元の通信状態に依存します。名称などの外部テキストはエスケープし、カテゴリとIDはパスとして安全な文字に限定しています。
 
 モデル一覧は正方形の小さなカードで表示し、1ページ60件に制限します。検索・カテゴリ・並べ替えは全カタログを対象とし、条件変更時は1ページ目に戻ります。画像は表示ページのみ生成し、遅延読み込みします。
 
-モデル詳細は3D表示を初期表示とし、ドラッグ・矢印キーによる回転、ホイール・ピンチによる拡大縮小、視点リセット、正面／背面写真の切り替えに対応します。`docs/model-viewer.js` が詳細を開いたときだけ `@google/model-viewer` 4.4.0（Apache-2.0、jsDelivr配信）と対象GLBを読み込み、閉じるとビューアを破棄します。読み込みエラー・タイムアウト時は再試行と写真表示を利用できます。ライブラリの公式資料：https://modelviewer.dev/docs/
+モデル詳細は3D表示を初期表示とし、ドラッグ・矢印キーによる回転、ホイール・ピンチによる拡大縮小、視点リセット、正面／背面写真の切り替えに対応します。`src/components/ModelPreview.tsx` が詳細を開いたときだけ `@google/model-viewer` 4.4.0（Apache-2.0、jsDelivr配信）と対象GLBを読み込み、閉じるとビューアを破棄します。読み込みエラー・タイムアウト時は再試行と写真表示を利用できます。ライブラリの公式資料：https://modelviewer.dev/docs/
+
+検索・一覧・ダイアログはReactで管理します。既存の見本の構図を維持するため、リポジトリ内の固定HTML/SVG見本のみ `Specimen` に渡します。外部のモデル名などはReactのテキストとして描画し、HTMLには挿入しません。モーションの監視と3Dビューアは部品の終了時に解除します。
