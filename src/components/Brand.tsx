@@ -18,7 +18,7 @@ export function Brand({header = false}: {header?: boolean}) {
           <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>}
       </defs>
-      <g transform={header ? "translate(-15 15) rotate(-45 145 65)" : undefined}>
+      <g transform={header ? "translate(-15 15) rotate(-30 145 65)" : undefined}>
       <g transform="translate(-20 -17) scale(1.23)">
         <use href={`#${letters}`} className="brand-ice"/>
         <g className="brand-facets" clipPath={`url(#${clip})`}>
