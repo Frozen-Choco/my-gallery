@@ -1,5 +1,5 @@
 import {StrictMode} from 'react';
-import {describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {fireEvent, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {App} from '../App';
@@ -9,6 +9,8 @@ import {trackDetail, trackDownload} from '../analytics';
 vi.mock('../components/useVideos', () => ({useVideos: () => []}));
 
 vi.mock('../analytics', () => ({trackPage:vi.fn(), trackDetail:vi.fn(), trackDownload:vi.fn()}));
+
+beforeEach(() => vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ok:true, json:async () => []})));
 
 function renderApp() {return render(<StrictMode><App/></StrictMode>);}
 function fixtureModels(count: number) {

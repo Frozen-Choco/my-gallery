@@ -1,9 +1,12 @@
 import {useEffect, useState} from 'react';
-import type {PersonalPage, ExamplePage} from '../types';
+import type {PersonalPage, ExamplePage, Model} from '../types';
 import {exampleCatalogs} from '../catalog';
 import {featuredPublications, publishedGames, youtube, type Publication, type Video} from '../catalog/publications';
 import {Icon} from './Icon';
 import {Specimen} from './Specimen';
+import {ThumbnailSlideshow} from './ThumbnailSlideshow';
+import {normalizeModels} from '../catalog/models';
+import savedModelCatalog from '../../public/models-catalog.json';
 import {useVideos} from './useVideos';
 function GameArtwork() {
   return <div className="game-artwork" aria-hidden="true">
@@ -81,21 +84,26 @@ const destinations = [
   {id:'styles', title:'デザインスタイル'}, {id:'games', title:'ゲームUI'},
   {id:'motion', title:'モーション'}, {id:'transitions', title:'トランジション'}, {id:'models', title:'3Dモデル'},
 ] as const;
-function PageThumbnail({id, videos}: {id: typeof destinations[number]['id']; videos: Video[]}) {
-  if (id === 'works') return publishedGames[0] ? <PublicationArtwork item={publishedGames[0]}/> : <Icon name="game"/>;
-  if (id === 'media') return videos[0] ? <PublicationArtwork item={videos[0]}/> : <span className="media-thumbnail"><YouTubeSymbol/></span>;
-  if (id === 'models') return <img className="model-thumbnail" src="https://raw.githubusercontent.com/Frozen-Choco/low-poly-models/main/assets/furniture/dining_chair/preview.jpg" alt="" loading="lazy"/>;
-  const page: ExamplePage = id;
-  const item = exampleCatalogs[page].items[page === 'styles' ? 1 : page === 'motion' ? 5 : 0];
-  return <Specimen page={page} item={item} detail paused/>;
+const savedModels = normalizeModels(savedModelCatalog).items;
+function PageThumbnail({id, videos, models, offset}: {id: typeof destinations[number]['id']; videos: Video[]; models: Model[]; offset: number}) {
+  const modelItems = models.length ? models : savedModels;
+  const count = id === 'works' ? publishedGames.length : id === 'media' ? videos.length : id === 'models' ? modelItems.length : exampleCatalogs[id].items.length;
+  function renderSlide(index: number) {
+    if (id === 'works') return publishedGames[index] ? <PublicationArtwork item={publishedGames[index]}/> : <Icon name="game"/>;
+    if (id === 'media') return videos[index] ? <PublicationArtwork item={videos[index]}/> : <span className="media-thumbnail"><YouTubeSymbol/></span>;
+    if (id === 'models') return modelItems[index] ? <img className="model-thumbnail" src={modelItems[index].preview} alt="" loading="lazy"/> : <Icon name="cube"/>;
+    const page: ExamplePage = id;
+    return <Specimen page={page} item={exampleCatalogs[page].items[index]} detail/>;
+  }
+  return <ThumbnailSlideshow count={count} renderSlide={renderSlide} interval={5200 + offset * 350}/>;
 }
-export function PersonalPages({page}: {page: PersonalPage}) {
+export function PersonalPages({page, models = []}: {page: PersonalPage; models?: Model[]}) {
   const videos = useVideos();
   if (page === 'works') return <div className="published-games">{publishedGames.map(game => <a key={game.id} className="published-game" href={game.url} target="_blank" rel="noopener noreferrer" aria-label={`${game.title}をitch.ioで見る（新しいタブ）`}><PublicationArtwork item={game}/><h2>{game.title}<span aria-hidden="true">↗</span></h2></a>)}</div>;
   if (page === 'media') return <MediaPage videos={videos}/>;
   const featured = featuredPublications(videos);
   return <div className="home-page">
     <FeaturedBanner key={featured.map(item => item.id).join(',')} items={featured}/>
-    <div className="page-links">{destinations.map(item => <a key={item.id} href={`#${item.id}`} className="page-link"><div className="page-thumbnail" aria-hidden="true"><PageThumbnail id={item.id} videos={videos}/></div><h2>{item.title}<Icon name="arrow"/></h2></a>)}</div>
+    <div className="page-links">{destinations.map((item, index) => <a key={item.id} href={`#${item.id}`} className="page-link"><PageThumbnail id={item.id} videos={videos} models={models} offset={index}/><h2>{item.title}<Icon name="arrow"/></h2></a>)}</div>
   </div>;
 }

@@ -95,6 +95,9 @@
     grid-template-columns: repeat(auto-fit, 300px);
     justify-content: center;
   }
+  .published-games, .video-grid {
+    grid-template-columns: repeat(auto-fill, 300px);
+  }
   .gallery.models-gallery:not(.list-view) {
     grid-template-columns: repeat(auto-fit, 176px);
   }

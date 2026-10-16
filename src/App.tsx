@@ -69,7 +69,7 @@ export function App() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const paginationFocus = useRef(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const models = useModels(page === 'models');
+  const models = useModels(page === 'models' || route === 'home');
   useEffect(() => {trackPage(route, titles[route]); document.title = `${titles[route]} | 冷凍チョコ ギャラリー`;}, [route]);
   const reset = useCallback(() => {setFilter('すべて'); setQuery(''); setModelPage(1);}, []);
   const navigate = useCallback((next: SitePage) => {
@@ -128,7 +128,7 @@ export function App() {
       </div>
       <div className="header-brand-viewport" aria-hidden={sidebarVisible} inert={sidebarVisible}><Brand header/></div>
       </header><main id="main"><section className="catalog" aria-labelledby="catalog-title">
-      {personalPage ? <PersonalPages page={personalPage}/> : <>
+      {personalPage ? <PersonalPages page={personalPage} models={models.catalog.items}/> : <>
       <div className="catalog-search"><label className="search-box"><Icon name="search"/><input ref={searchRef} id="search" type="search" placeholder={page === 'models' ? 'モデル名・カテゴリで検索' : isAnimated ? '効果・特徴で検索' : 'スタイル・特徴で検索'} autoComplete="off" aria-label={`${titles[page]}・キーワードを検索`} value={query} onChange={event => {setQuery(event.target.value); setModelPage(1);}}/><kbd>/</kbd></label></div>
       <div className="filter-row"><div id="filters" className="filters" aria-label={page === 'models' ? 'カテゴリで絞り込む' : isAnimated ? '効果で絞り込む' : page === 'games' ? '見た目で絞り込む' : '印象で絞り込む'}>
         {catalog.filters.map(value => <button key={value} className={`filter-chip${filter === value ? ' active' : ''}`} aria-pressed={filter === value} data-filter={value} onClick={() => {setFilter(value); setModelPage(1);}}>{value}</button>)}
