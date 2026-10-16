@@ -10,7 +10,7 @@ function ChocolateMark({outline = false, gloss}: {outline?: boolean; gloss?: str
     <g transform="translate(204 70) translate(-85 -147)"><path d="M67 128L103 119M61 143H108M86 124V150Q86 166 65 175"/></g>
     <g transform="translate(268 85) rotate(13) scale(.86) translate(-136 -150)"><path d="M119 131H151V173H118M119 152H150" strokeWidth={outline ? 16 : 8}/></g>
     <g transform="translate(-9 0)">
-    <path className={outline ? 'brand-outline-fill' : 'brand-drop'} fill={outline ? undefined : `url(#${gloss})`} d="M329.8 66.9L362.8 83.7Q367.2 86 364.9 90.5L341 137.5C338 143 334 147 334 153C334 160 340 166 339 173C338 184 323 185 322 175C321 169 327 163 328 157C329 150 333 145 331 141C330 139 328 137 326 135.8L301.2 123.1Q296.8 120.8 299 116.4Q301.3 112 305.8 114.2L334.3 128.7L353.8 90.4L325.3 75.9Q320.8 73.6 323.1 69.1Q325.4 64.7 329.8 66.9Z" strokeWidth={outline ? 8 : 0}/>
+    <path className={outline ? 'brand-outline-fill' : 'brand-drop'} fill={outline ? undefined : `url(#${gloss})`} d="M329.8 66.9L362.8 83.7Q367.2 86 364.9 90.5L341.5 136.6C339.8 139.9 339.5 144 339.5 150C339.5 159 346 164 346 172C346 177.5 342.5 181 337.5 181C332.5 181 329 177.5 329 172C329 164 335.5 159 335.5 150C335.5 142 333 139.2 328.8 137.2L301.2 123.1Q296.8 120.8 299 116.4Q301.3 112 305.8 114.2L334.3 128.7L353.8 90.4L325.3 75.9Q320.8 73.6 323.1 69.1Q325.4 64.7 329.8 66.9Z" strokeWidth={outline ? 8 : 0}/>
     </g>
   </g>;
 }
@@ -18,7 +18,7 @@ function ChocolateMark({outline = false, gloss}: {outline?: boolean; gloss?: str
 function HeaderLogo({id}: {id: string}) {
   return <svg className="brand-art" viewBox="0 25 400 165" aria-hidden="true">
     <defs>
-      <linearGradient id={`${id}-drop`} gradientUnits="userSpaceOnUse" x1="327" y1="165" x2="338" y2="179">
+      <linearGradient id={`${id}-drop`} gradientUnits="userSpaceOnUse" x1="330" y1="163" x2="345" y2="180">
         <stop stopColor="#805136"/><stop offset=".55" stopColor="#70442e"/><stop offset="1" stopColor="#ba8155"/>
       </linearGradient>
       {frozenLetters.map(({letter}, index) => <clipPath key={letter} id={`${id}-ice-${index}`}>
@@ -34,7 +34,7 @@ function HeaderLogo({id}: {id: string}) {
     <ChocolateMark outline/>
     <ChocolateMark gloss={`${id}-drop`}/>
     <g className="brand-drop-glints" fill="none" strokeLinecap="round" transform="translate(-9 0)">
-      <path d="M336 174C336 178 333 180 329 178" stroke="#ffe5b8" strokeWidth="2"/>
+      <path d="M343 172C343 176 341 178 337.5 178" stroke="#ffe5b8" strokeWidth="2"/>
     </g>
     <text className="brand-gallery" x="200" y="163" textAnchor="middle" fontSize="29" letterSpacing="4">ギャラリー</text>
   </svg>;
