@@ -29,7 +29,7 @@ function PreviewRow({label, destination, entries, paused, onOpen, onNavigate}: {
     </div></div>
     <div className="preview-rail-frame">
     <div className="preview-rail" ref={ref} id={`${id}-rail`}>
-      {entries.slice(0, previewLimit).map(entry => <ExampleCard key={`${entry.page}:${entry.item.id}`} page={entry.page} item={entry.item} paused={paused} onOpen={() => onOpen(entry)}/>)}
+      {entries.slice(0, previewLimit).map(entry => <ExampleCard compact key={`${entry.page}:${entry.item.id}`} page={entry.page} item={entry.item} paused={paused} onOpen={() => onOpen(entry)}/>)}
     </div>
     <button className="rail-arrow rail-arrow-left" aria-label={`${label}を左へ送る`} aria-controls={`${id}-rail`} disabled={edges.start} onClick={() => scroll(-1)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
     <button className="rail-arrow rail-arrow-right" aria-label={`${label}を右へ送る`} aria-controls={`${id}-rail`} disabled={edges.end} onClick={() => scroll(1)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>

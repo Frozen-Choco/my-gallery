@@ -27,6 +27,8 @@ describe('catalog interaction after the React migration', () => {
     expect(location.hash).toBe('#design');
     expect(screen.queryByRole('searchbox')).toBeNull();
     expect(document.querySelectorAll('.preview-row')).toHaveLength(3);
+    expect(document.querySelector('.preview-rail .card-description')).toBeNull();
+    expect(document.querySelector('.preview-rail .card-title h3')).toBeTruthy();
     const allRow = within(screen.getByRole('region', {name:'すべて'}));
     const game = exampleCatalogs.games.items[0];
     await user.click(allRow.getByRole('button', {name:`${game.name} の見本と特徴を見る`}));
@@ -38,17 +40,19 @@ describe('catalog interaction after the React migration', () => {
     expect(HTMLElement.prototype.scrollIntoView).toHaveBeenCalledWith({block:'start'});
     expect(location.hash).toBe('#design-all');
     expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(28);
-    const design = within(screen.getByRole('group', {name:'デザインの一覧'}));
-    await user.click(design.getByRole('button', {name:'ウェブ'}));
-    expect(location.hash).toBe('#styles');
-    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(16);
-    await user.click(design.getByRole('button', {name:'ゲーム'}));
-    expect(location.hash).toBe('#games');
-    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(12);
+    expect(screen.queryByRole('group', {name:'デザインの一覧'})).toBeNull();
+    for (const [name, hash, count] of [['ウェブ','#styles',16], ['ゲーム','#games',12]] as const) {
+      await user.click(screen.getByRole('link', {name:'← デザイン'}));
+      await user.click(within(screen.getByRole('region', {name})).getByRole('link', {name:'すべて見る'}));
+      expect(location.hash).toBe(hash);
+      expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(count);
+      expect(document.querySelector('#gallery .card-description')).toBeTruthy();
+      expect(document.querySelector('#filters .filter-chip')).toBeTruthy();
+    }
     await user.type(screen.getByRole('searchbox'), '存在しない名前');
     expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(0);
-    await user.click(design.getByRole('button', {name:'すべて'}));
-    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(28);
+    await user.click(screen.getByRole('button', {name:'リセット ↺'}));
+    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(12);
     await user.click(nav.getByRole('button', {name:'アニメーション'}));
     expect(location.hash).toBe('#animation');
     expect(screen.queryByRole('searchbox')).toBeNull();
@@ -61,15 +65,16 @@ describe('catalog interaction after the React migration', () => {
     await user.click(animationRow.getByRole('link', {name:'すべて見る'}));
     expect(location.hash).toBe('#animation-all');
     expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(25);
-    const animation = within(screen.getByRole('group', {name:'アニメーションの一覧'}));
+    expect(screen.queryByRole('group', {name:'アニメーションの一覧'})).toBeNull();
     for (const [name, hash, count] of [['モーション','#motion',13], ['トランジション','#transitions',12]] as const) {
-      await user.click(animation.getByRole('button', {name}));
+      await user.click(screen.getByRole('link', {name:'← アニメーション'}));
+      await user.click(within(screen.getByRole('region', {name})).getByRole('link', {name:'すべて見る'}));
       expect(location.hash).toBe(hash);
       expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(count);
     }
     history.replaceState(null, '', '/#animation-all');
     fireEvent(window, new PopStateEvent('popstate'));
-    expect(animation.getByRole('button', {name:'すべて'}).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('heading', {level:1}).textContent).toBe('アニメーション一覧');
     expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(25);
   });
   it('starts desktop navigation closed and preserves its toggle state across page navigation', async () => {
@@ -113,6 +118,7 @@ describe('catalog interaction after the React migration', () => {
     expect(close.closest('#sidebar')).toBeTruthy();
     expect(document.activeElement).toBe(close);
     expect(screen.queryByRole('button', {name:'メニューを開く'})).toBeNull();
+    expect(within(document.querySelector('.site-header')!).getByRole('link', {name:'冷凍チョコ ギャラリー ホーム'})).toBeTruthy();
     await user.click(screen.getByRole('button', {name:'メニューの外側を押して閉じる'}));
     menu = screen.getByRole('button', {name:'メニューを開く'});
     expect(menu.getAttribute('aria-expanded')).toBe('false');

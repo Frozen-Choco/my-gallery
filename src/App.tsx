@@ -1,6 +1,6 @@
 import {Fragment, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {trackDetail, trackPage} from './analytics';
-import {animatedPage, collectionAllRoutes, collectionFor, collectionLabels, collectionPages, exampleCatalogs, matchItems, pageFromHash, titles} from './catalog';
+import {animatedPage, collectionAllRoutes, collectionFor, collectionPages, exampleCatalogs, matchItems, pageFromHash, titles} from './catalog';
 import {loadModelCatalog} from './catalog/models';
 import {Brand} from './components/Brand';
 import {DetailDialog} from './components/DetailDialog';
@@ -151,17 +151,13 @@ export function App() {
       </div>
     </aside>
     <div className={`workspace${!mobile && !desktopSidebarOpen ? ' sidebar-collapsed' : ''}`}><header className={`site-header${!sidebarVisible ? ' menu-visible' : ''}`}>
-      <div className="catalog-heading"><div className="section-title">{!sidebarVisible && <button ref={menuRef} id="menu-button" className="icon-button menu-open" title="メニューを開く" aria-label="メニューを開く" aria-expanded={false} aria-controls="sidebar" onClick={() => changeSidebar(true)}><Icon name="menu"/></button>}<h1 id="catalog-title">{titles[collection ?? route]}</h1></div>
+      <div className="catalog-heading"><div className="section-title">{!sidebarVisible && <button ref={menuRef} id="menu-button" className="icon-button menu-open" title="メニューを開く" aria-label="メニューを開く" aria-expanded={false} aria-controls="sidebar" onClick={() => changeSidebar(true)}><Icon name="menu"/></button>}<h1 id="catalog-title">{titles[route]}</h1></div>
       </div>
-      <div className="header-brand-viewport" aria-hidden={sidebarVisible} inert={sidebarVisible}><Brand header/></div>
+      <div className="header-brand-viewport" aria-hidden={!mobile && sidebarVisible} inert={!mobile && sidebarVisible}><Brand header/></div>
       </header><main id="main"><section className="catalog" aria-labelledby="catalog-title">
       {personalPage ? <PersonalPages page={personalPage} models={models.catalog.items}/> : overview ? <CollectionOverview key={overview} collection={overview} onNavigate={navigate} paused={selection !== null} onOpen={({page:sourcePage, item}) => openDetail({...item, sourcePage})}/> : <>
       {collection && <a className="collection-back" href={`#${collection}`} onClick={event => {if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button === 0) {event.preventDefault(); navigate(collection);}}}>← {titles[collection]}</a>}
       <div className="catalog-toolbar">
-      {collection && <div className="collection-switch" role="group" aria-label={`${titles[collection]}の一覧`}>
-        <button className={combined ? 'selected' : ''} aria-pressed={combined} onClick={() => navigate(collectionAllRoutes[collection])}>すべて</button>
-        {collectionPages[collection].map(child => <button key={child} className={route === child ? 'selected' : ''} aria-pressed={route === child} onClick={() => navigate(child)}>{collectionLabels[child]}</button>)}
-      </div>}
       <div className="catalog-search"><label className="search-box"><Icon name="search"/><input ref={searchRef} id="search" type="search" placeholder={page === 'models' ? 'モデル名・カテゴリで検索' : isAnimated ? '効果・特徴で検索' : 'スタイル・特徴で検索'} autoComplete="off" aria-label={`${titles[collection ?? page]}・キーワードを検索`} value={query} onChange={event => {setQuery(event.target.value); setModelPage(1);}}/><kbd>/</kbd></label></div>
       </div>
       <div className="filter-row"><div id="filters" className="filters" aria-label={page === 'models' ? 'カテゴリで絞り込む' : isAnimated ? '効果で絞り込む' : page === 'games' ? '見た目で絞り込む' : '印象で絞り込む'}>

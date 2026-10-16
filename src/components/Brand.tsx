@@ -17,8 +17,8 @@ function ChocolateMark({outline = false, gloss}: {outline?: boolean; gloss?: str
 function HeaderLogo({id}: {id: string}) {
   return <svg className="brand-art" viewBox="0 25 400 165" aria-hidden="true">
     <defs>
-      <linearGradient id={`${id}-drop`} gradientUnits="userSpaceOnUse" x1="325" y1="156" x2="340" y2="172">
-        <stop stopColor="#805136"/><stop offset=".35" stopColor="#c58a5b"/><stop offset=".7" stopColor="#95603c"/><stop offset="1" stopColor="#633b28"/>
+      <linearGradient id={`${id}-drop`} gradientUnits="userSpaceOnUse" x1="327" y1="165" x2="338" y2="179">
+        <stop stopColor="#805136"/><stop offset=".55" stopColor="#70442e"/><stop offset="1" stopColor="#ba8155"/>
       </linearGradient>
       {frozenLetters.map(({letter}, index) => <clipPath key={letter} id={`${id}-ice-${index}`}>
       <text x="-34" y="26" className="brand-frozen">{letter}</text>
@@ -33,8 +33,7 @@ function HeaderLogo({id}: {id: string}) {
     <ChocolateMark outline/>
     <ChocolateMark gloss={`${id}-drop`}/>
     <g className="brand-drop-glints" fill="none" strokeLinecap="round">
-      <path d="M332 159C331 164 327 168 328 172" stroke="#ffe5b8" strokeWidth="2.5"/>
-      <path d="M331 176Q335 177 336 173" stroke="#d99c67" strokeWidth="1.5"/>
+      <path d="M336 171C337 175 333 178 330 176" stroke="#ffe5b8" strokeWidth="2"/>
     </g>
     <text className="brand-gallery" x="200" y="163" textAnchor="middle" fontSize="29" letterSpacing="4">ギャラリー</text>
   </svg>;
@@ -46,8 +45,8 @@ function SidebarLogo({id}: {id: string}) {
     <defs>
       <text id={letters} x="62" y="94" fontSize="65" letterSpacing="-3" className="brand-frozen">冷凍</text>
       <clipPath id={clip}><use href={`#${letters}`}/></clipPath>
-      <linearGradient id={`${id}-drop`} gradientUnits="userSpaceOnUse" x1="192" y1="181" x2="208" y2="207">
-        <stop stopColor="#805136"/><stop offset=".45" stopColor="#bf8252"/><stop offset=".75" stopColor="#99603c"/><stop offset="1" stopColor="#633b28"/>
+      <linearGradient id={`${id}-drop`} gradientUnits="userSpaceOnUse" x1="195" y1="196" x2="208" y2="212">
+        <stop stopColor="#805136"/><stop offset=".55" stopColor="#70442e"/><stop offset="1" stopColor="#ba8155"/>
       </linearGradient>
       <linearGradient id={gradient} gradientUnits="userSpaceOnUse" x1="0" y1="34" x2="0" y2="199">
         <stop offset="0" stopColor="#477a8b"/><stop offset=".48" stopColor="#72786b"/><stop offset="1" stopColor="#805136"/>
@@ -66,9 +65,7 @@ function SidebarLogo({id}: {id: string}) {
     </g>
     <path className="brand-drop" fill={`url(#${id}-drop)`} d="M168 120H203Q208 120 208 125V163C208 174 202 178 202 185C202 191 209 195 209 201C209 207 205 211 200 211C194 211 191 207 191 202C191 195 198 192 198 184C198 180 194 178 188 178H166A5 5 0 0 1 166 168H193Q198 168 198 163V130H168A5 5 0 0 1 168 120Z"/>
     <g className="brand-drop-glints" fill="none" strokeLinecap="round">
-      <path d="M201 184C202 190 195 195 195 201" stroke="#ffe5b8" strokeWidth="2.8"/>
-      <path d="M195 204L196 205" stroke="#fff0d3" strokeWidth="2.2"/>
-      <path d="M201 208Q206 207 206 203" stroke="#d99c67" strokeWidth="1.7"/>
+      <path d="M206 201C207 206 203 210 199 208" stroke="#ffe5b8" strokeWidth="2.4"/>
     </g>
     <path d="M228 34V199" fill="none" stroke={`url(#${gradient})`} strokeWidth="1" opacity=".3"/>
     <g className="brand-side-gallery" fill="none" stroke={`url(#${gradient})`} strokeWidth="3.2" strokeLinejoin="miter" strokeLinecap="square">
