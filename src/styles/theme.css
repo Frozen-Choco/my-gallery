@@ -31,14 +31,10 @@
   letter-spacing: .04em;
   line-height: 1.5;
 }
-.site-header .search-box { background: #fff8e7; border-color: #fff8e7; color: #897263; }
-.site-header .search-box input { color: #574037; }
-.site-header .search-box input::placeholder { color: #897263; }
-.site-header .search-box kbd { border-color: #e4d8bd; }
-.site-header .search-box:focus-within { box-shadow: 0 0 0 3px #fff8e740; }
 .site-header .icon-button:hover { background: #fff8e724; }
 .site-header :focus-visible { outline-color: #fff8e7; }
 .workspace main { padding-top: 28px; }
+.catalog-search { display: flex; justify-content: flex-end; margin-bottom: 20px; }
 
 /* Site headings only: specimen typography remains part of each example. */
 .card-title h2, .page-link h2, .published-game h2, .video-card h2,
