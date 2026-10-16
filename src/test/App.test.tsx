@@ -20,10 +20,12 @@ describe('catalog interaction after the React migration', () => {
     const toggle = screen.getByRole('button', {name:'メニューを閉じる'});
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
     expect(toggle.closest('#sidebar')).toBeTruthy();
+    expect(within(document.querySelector('.site-header')!).queryByRole('link', {name:'冷凍チョコ ギャラリー ホーム'})).toBeNull();
     expect(screen.queryByRole('button', {name:'メニューを開く'})).toBeNull();
     await user.click(toggle);
     const menu = screen.getByRole('button', {name:'メニューを開く'});
     expect(menu.closest('.site-header')).toBeTruthy();
+    expect(within(document.querySelector('.site-header')!).getByRole('link', {name:'冷凍チョコ ギャラリー ホーム'}).getAttribute('href')).toBe('#home');
     expect(document.activeElement).toBe(menu);
     expect(screen.queryByRole('button', {name:'メニューを閉じる'})).toBeNull();
     expect(menu.getAttribute('aria-expanded')).toBe('false');
@@ -34,6 +36,7 @@ describe('catalog interaction after the React migration', () => {
     expect(menu.getAttribute('aria-expanded')).toBe('false');
     await user.click(menu);
     expect(document.activeElement).toBe(screen.getByRole('button', {name:'メニューを閉じる'}));
+    expect(within(document.querySelector('.site-header')!).queryByRole('link', {name:'冷凍チョコ ギャラリー ホーム'})).toBeNull();
     expect(document.querySelector('#sidebar')?.hasAttribute('inert')).toBe(false);
     await user.click(screen.getByRole('button', {name:'デザインスタイル'}));
     expect(screen.getByRole('button', {name:'メニューを閉じる'}).getAttribute('aria-expanded')).toBe('true');
