@@ -5,6 +5,7 @@
   --cream: #fff3d6;
   --heading-font: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
   --content-gutter: 40px;
+  --header-height: 99px;
 }
 .sidebar {
   background: var(--cream);
@@ -17,12 +18,12 @@
 .nav-library-start { border-top-color: #e8d9b6; }
 .sidebar .privacy-link { color: #77604e; }
 
-.site-header { background: var(--crimson); color: #fff8e7; }
+.site-header { position: sticky; top: 0; z-index: 15; background: var(--crimson); color: #fff8e7; }
 .site-header .catalog-heading {
   max-width: 1500px;
   margin: 0 auto;
   padding: 28px var(--content-gutter);
-  min-height: 99px;
+  min-height: var(--header-height);
 }
 .site-header h1 {
   font-family: var(--heading-font);
@@ -34,6 +35,7 @@
 .site-header .icon-button:hover { background: #fff8e724; }
 .site-header :focus-visible { outline-color: #fff8e7; }
 .workspace main { padding-top: 28px; }
+#main, .results-bar { scroll-margin-top: calc(var(--header-height) + 12px); }
 .catalog-search { display: flex; justify-content: flex-end; margin-bottom: 20px; }
 
 /* Site headings only: specimen typography remains part of each example. */
@@ -45,8 +47,8 @@
 @media (min-width: 1450px) { :root { --content-gutter: 50px; } }
 @media (max-width: 1150px) { :root { --content-gutter: 27px; } }
 @media (max-width: 760px) {
-  :root { --content-gutter: 22px; }
-  .site-header .catalog-heading { min-height: 80px; padding-block: 21px; gap: 17px; }
+  :root { --content-gutter: 22px; --header-height: 80px; }
+  .site-header .catalog-heading { min-height: var(--header-height); padding-block: 21px; gap: 17px; }
   .site-header h1 { font-size: 24px; }
   .workspace main { padding-top: 24px; }
 }
