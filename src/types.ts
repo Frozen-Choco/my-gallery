@@ -1,3 +1,4 @@
+export type SortOrder = 'name-asc' | 'name-desc';
 export type Page = 'styles' | 'games' | 'motion' | 'transitions' | 'models';
 export type PersonalPage = 'home' | 'works' | 'media';
 export type CollectionPage = 'design' | 'animation';

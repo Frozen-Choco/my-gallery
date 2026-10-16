@@ -167,9 +167,9 @@
 .preview-row-actions > a:hover { color: #a31b3b; text-decoration: underline; text-underline-offset: 4px; }
 .preview-row { --preview-width: 300px; }
 .preview-rail-frame { position: relative; overflow: hidden; border-radius: 7px 7px 0 0; }
-.rail-arrow { position: absolute; z-index: 2; top: 0; width: 44px; height: calc(var(--preview-width) / 1.38); display: grid; place-items: center; color: white; transition: background-color .15s; background-color: #241b1838; backdrop-filter: blur(2px); }
-.rail-arrow-left { left: 0; border-radius: 7px 0 0 7px; background-image: linear-gradient(90deg, #241b1840, transparent); }
-.rail-arrow-right { right: 0; border-radius: 0 7px 7px 0; background-image: linear-gradient(270deg, #241b1840, transparent); }
+.rail-arrow { position: absolute; z-index: 2; top: 0; width: 44px; height: calc(var(--preview-width) / 1.38); display: grid; place-items: center; color: white; opacity: 0; pointer-events: none; transition: opacity .15s, background-color .15s; background-color: #241b1838; backdrop-filter: blur(2px); }
+.rail-arrow-left { left: 0; border-radius: 7px 0 0 0; background-image: linear-gradient(90deg, #241b1840, transparent); }
+.rail-arrow-right { right: 0; border-radius: 0 7px 0 0; background-image: linear-gradient(270deg, #241b1840, transparent); }
 .rail-arrow svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 2px #0005); }
 .rail-arrow:hover:not(:disabled) { background-color: #241b186b; }
 .rail-arrow:focus-visible { outline: 3px solid #a31b3b; outline-offset: -3px; }
@@ -194,4 +194,15 @@
 @media (max-width: 760px) {
   .site-header:not(.menu-visible) .brand-header { transform: translate(0, -50%); pointer-events: auto; }
   .site-header .section-title { max-width: calc(100% - var(--header-brand-width) - 20px); }
+}
+
+/* Keep the overlay flush with the full preview, including its bottom corners. */
+.preview-rail :is(.preview-button, .motion-demo, .transition-demo) { height: calc(var(--preview-width) / 1.38); }
+.preview-rail :is(.motion-stage, .transition-stage) { height: 100%; aspect-ratio: auto; }
+@media (min-width: 761px) and (hover: hover) and (pointer: fine) {
+  .preview-rail-frame:hover .rail-arrow:not(:disabled),
+  .preview-rail-frame:has(:focus-visible) .rail-arrow:not(:disabled) { opacity: 1; pointer-events: auto; }
+}
+@media (max-width: 760px), (hover: none), (pointer: coarse) {
+  .rail-arrow { display: none; }
 }

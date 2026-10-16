@@ -9,7 +9,7 @@ import {ModelCard} from './components/ModelPreview';
 import {PersonalPages} from './components/PersonalPages';
 import {ExampleCard} from './components/ExampleCard';
 import {CollectionOverview} from './components/CollectionOverview';
-import type {ExampleItem, ExamplePage, Model, ModelCatalog, ModelStatus, Page, SitePage, Selection} from './types';
+import type {ExampleItem, ExamplePage, Model, ModelCatalog, ModelStatus, Page, SitePage, Selection, SortOrder} from './types';
 
 const pageSize = 60;
 type NavigationItem = {page: SitePage; icon: IconName; divider?: boolean};
@@ -56,7 +56,7 @@ export function App() {
   const page: Page = personalPage ? 'styles' : combined ? collectionPages[collection][0] : route as Page;
   const [filter, setFilter] = useState('すべて');
   const [query, setQuery] = useState('');
-  const [sort, setSort] = useState<'default' | 'name'>('default');
+  const [sort, setSort] = useState<SortOrder>('name-asc');
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [modelPage, setModelPage] = useState(1);
   const [selection, setSelection] = useState<Selection | null>(null);
@@ -168,7 +168,7 @@ export function App() {
         {(status === 'fallback' || status === 'error') && <button onClick={models.retry}>再読み込み</button>}
       </p>
       <div className="results-bar" ref={resultsRef}><p id="result-count" aria-live="polite">{page === 'models' && pages > 1 ? `${start + 1}–${Math.min(start + pageSize, matched.length)} / ${matched.length}件` : `${matched.length}件`}</p>
-        <div className="results-actions"><Pagination page={currentPage} pages={pages} top onChange={changeModelPage}/><label className="sort-label"><span className="sr-only">並び順</span><select id="sort" value={sort} onChange={event => {setSort(event.target.value as 'default' | 'name'); setModelPage(1);}}><option value="default">標準順</option><option value="name">名前順</option></select></label>
+        <div className="results-actions"><Pagination page={currentPage} pages={pages} top onChange={changeModelPage}/><label className="sort-label"><span className="sr-only">並び順</span><select id="sort" value={sort} onChange={event => {setSort(event.target.value as SortOrder); setModelPage(1);}}><option value="name-asc">名前の昇順</option><option value="name-desc">名前の降順</option></select></label>
           <div className="view-switch" aria-label="表示形式">{(['grid','list'] as const).map(value => <button key={value} className={`icon-button${view === value ? ' selected' : ''}`} data-view={value} aria-label={value === 'grid' ? 'グリッド表示' : 'リスト表示'} aria-pressed={view === value} onClick={() => setView(value)}><Icon name={value}/></button>)}</div>
         </div>
       </div>

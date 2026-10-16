@@ -168,6 +168,25 @@ describe('catalog interaction after the React migration', () => {
     expect(screen.getByRole('link', {name:'冷凍チョコ ギャラリー ホーム'}).getAttribute('href')).toBe('#home');
   });
 
+  it('defaults to ascending names and reverses the list without clearing filters', async () => {
+    history.replaceState(null, '', '/#styles');
+    const user = userEvent.setup(); renderApp();
+    const sort = screen.getByRole('combobox', {name:'並び順'});
+    expect((sort as HTMLSelectElement).value).toBe('name-asc');
+    expect(within(sort).getAllByRole('option').map(option => option.textContent)).toEqual(['名前の昇順','名前の降順']);
+    const names = () => [...document.querySelectorAll('#gallery .card-title')].map(node => node.textContent!);
+    const ascending = names();
+    expect(ascending[0]).toBe('エディトリアル');
+    await user.selectOptions(sort, 'name-desc');
+    expect(names()).toEqual([...ascending].reverse());
+    await user.click(screen.getByRole('button', {name:'楽しい・ポップ'}));
+    const descendingFiltered = names();
+    expect(descendingFiltered.length).toBeLessThan(ascending.length);
+    await user.selectOptions(sort, 'name-asc');
+    expect(names()).toEqual([...descendingFiltered].reverse());
+    expect(screen.getByRole('button', {name:'楽しい・ポップ'}).getAttribute('aria-pressed')).toBe('true');
+  });
+
   it('preserves search, filters, view, detail, prompt editing and focus restoration', async () => {
     history.replaceState(null, '', '/#styles');
     const user = userEvent.setup(); renderApp();

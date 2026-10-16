@@ -3,7 +3,7 @@ import {sampleMarkup} from './samples';
 import {games, gameFilters, gameMarkup, gamePrompt} from './games';
 import {motions, motionFilters, motionMarkup, motionPrompt} from './motion';
 import {transitions, transitionFilters, transitionMarkup, transitionPrompt} from './transitions';
-import type {CatalogItem, CollectionListPage, CollectionPage, DesignStyle, ExampleItem, ExamplePage, GameStyle, MotionStyle, Page, SitePage} from '../types';
+import type {CatalogItem, CollectionListPage, CollectionPage, DesignStyle, ExampleItem, ExamplePage, GameStyle, MotionStyle, Page, SitePage, SortOrder} from '../types';
 
 export const titles: Record<SitePage, string> = {'design-all':'デザイン一覧', 'animation-all':'アニメーション一覧', design:'デザイン', animation:'アニメーション', home:'ホーム', works:'ゲーム', media:'メディア', styles:'ウェブデザイン', games:'ゲームUI', motion:'モーション', transitions:'トランジション', models:'ローポリモデル'};
 export const exampleCatalogs: Record<ExamplePage, {items: ExampleItem[]; filters: string[]}> = {
@@ -34,9 +34,9 @@ export function promptForItem(page: ExamplePage, item: ExampleItem): string {
   if (page === 'motion') return motionPrompt(item as MotionStyle);
   return transitionPrompt(item);
 }
-export function matchItems<T extends CatalogItem>(items: T[], filter: string, query: string, sort: 'default' | 'name'): T[] {
+export function matchItems<T extends CatalogItem>(items: T[], filter: string, query: string, sort: SortOrder): T[] {
   const needle = query.trim().toLocaleLowerCase();
   const matched = items.filter(s => (filter === 'すべて' || s.category.includes(filter)) && `${s.name} ${s.ja} ${s.tags.join(' ')} ${s.category.join(' ')} ${s.description} ${s.use}`.toLocaleLowerCase().includes(needle));
-  if (sort === 'name') matched.sort((a, b) => a.ja.localeCompare(b.ja, 'ja'));
+  matched.sort((a, b) => a.ja.localeCompare(b.ja, 'ja', {numeric:true}) * (sort === 'name-desc' ? -1 : 1));
   return matched;
 }
