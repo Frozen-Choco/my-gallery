@@ -155,7 +155,7 @@ export function App() {
       </div>
       <div className="header-brand-viewport" aria-hidden={!mobile && sidebarVisible} inert={!mobile && sidebarVisible}><Brand header/></div>
       </header><main id="main"><section className="catalog" aria-labelledby="catalog-title">
-      {personalPage ? <PersonalPages page={personalPage} models={models.catalog.items}/> : overview ? <CollectionOverview key={overview} collection={overview} onNavigate={navigate} paused={selection !== null} onOpen={({page:sourcePage, item}) => openDetail({...item, sourcePage})}/> : <>
+      {personalPage ? <PersonalPages page={personalPage} models={models.catalog.items}/> : overview ? <CollectionOverview key={overview} collection={overview} onNavigate={next => {setSort('name-asc'); navigate(next);}} paused={selection !== null} onOpen={({page:sourcePage, item}) => openDetail({...item, sourcePage})}/> : <>
       {collection && <a className="collection-back" href={`#${collection}`} onClick={event => {if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button === 0) {event.preventDefault(); navigate(collection);}}}>← {titles[collection]}</a>}
       <div className="catalog-toolbar">
       <div className="catalog-search"><label className="search-box"><Icon name="search"/><input ref={searchRef} id="search" type="search" placeholder={page === 'models' ? 'モデル名・カテゴリで検索' : isAnimated ? '効果・特徴で検索' : 'スタイル・特徴で検索'} autoComplete="off" aria-label={`${titles[collection ?? page]}・キーワードを検索`} value={query} onChange={event => {setQuery(event.target.value); setModelPage(1);}}/><kbd>/</kbd></label></div>
@@ -168,7 +168,7 @@ export function App() {
         {(status === 'fallback' || status === 'error') && <button onClick={models.retry}>再読み込み</button>}
       </p>
       <div className="results-bar" ref={resultsRef}><p id="result-count" aria-live="polite">{page === 'models' && pages > 1 ? `${start + 1}–${Math.min(start + pageSize, matched.length)} / ${matched.length}件` : `${matched.length}件`}</p>
-        <div className="results-actions"><Pagination page={currentPage} pages={pages} top onChange={changeModelPage}/><label className="sort-label"><span className="sr-only">並び順</span><select id="sort" value={sort} onChange={event => {setSort(event.target.value as SortOrder); setModelPage(1);}}><option value="name-asc">名前の昇順</option><option value="name-desc">名前の降順</option></select></label>
+        <div className="results-actions"><Pagination page={currentPage} pages={pages} top onChange={changeModelPage}/><label className="sort-label"><span className="sr-only">並び順</span><select id="sort" value={sort} onChange={event => {setSort(event.target.value as SortOrder); setModelPage(1);}}><option value="name-asc">名前（昇順）</option><option value="name-desc">名前（降順）</option></select></label>
           <div className="view-switch" aria-label="表示形式">{(['grid','list'] as const).map(value => <button key={value} className={`icon-button${view === value ? ' selected' : ''}`} data-view={value} aria-label={value === 'grid' ? 'グリッド表示' : 'リスト表示'} aria-pressed={view === value} onClick={() => setView(value)}><Icon name={value}/></button>)}</div>
         </div>
       </div>

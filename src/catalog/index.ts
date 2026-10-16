@@ -34,9 +34,10 @@ export function promptForItem(page: ExamplePage, item: ExampleItem): string {
   if (page === 'motion') return motionPrompt(item as MotionStyle);
   return transitionPrompt(item);
 }
+export const compareNames = (a: CatalogItem, b: CatalogItem) => a.ja.localeCompare(b.ja, 'ja', {numeric:true});
 export function matchItems<T extends CatalogItem>(items: T[], filter: string, query: string, sort: SortOrder): T[] {
   const needle = query.trim().toLocaleLowerCase();
   const matched = items.filter(s => (filter === 'すべて' || s.category.includes(filter)) && `${s.name} ${s.ja} ${s.tags.join(' ')} ${s.category.join(' ')} ${s.description} ${s.use}`.toLocaleLowerCase().includes(needle));
-  matched.sort((a, b) => a.ja.localeCompare(b.ja, 'ja', {numeric:true}) * (sort === 'name-desc' ? -1 : 1));
+  matched.sort((a, b) => compareNames(a, b) * (sort === 'name-desc' ? -1 : 1));
   return matched;
 }
