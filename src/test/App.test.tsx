@@ -3,6 +3,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {fireEvent, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {App} from '../App';
+import {exampleCatalogs} from '../catalog';
 import {FakeViewer} from './setup';
 import {trackDetail, trackDownload} from '../analytics';
 
@@ -17,25 +18,48 @@ function fixtureModels(count: number) {
   return Array.from({length: count}, (_, i) => ({id: `model_${String(i + 1).padStart(4,'0')}`, title_ja: `モデル ${String(i + 1).padStart(4,'0')}`, category: i % 2 ? 'household' : 'furniture', triangles: 640, vertices: 352, dimensions_m: [1, 2, 3], glb_bytes: 1000, blend_bytes: 2000, blender_version: '4.3.2'}));
 }
 describe('catalog interaction after the React migration', () => {
-  it('separates published games from game design and groups both animation pages', async () => {
+  it('shows only parent navigation and filters combined collections without losing specimen types', async () => {
     const user = userEvent.setup(); renderApp();
     await user.click(screen.getByRole('button', {name:'メニューを開く'}));
-    const design = screen.getByRole('group', {name:'デザイン'});
-    const animation = screen.getByRole('group', {name:'アニメーション'});
-    expect(within(design).getByRole('button', {name:'ウェブ'})).toBeTruthy();
-    const publishedGames = screen.getAllByRole('button', {name:'ゲーム'}).find(button => !button.closest('[role="group"]'))!;
-    await user.click(publishedGames);
-    expect(location.hash).toBe('#works');
-    expect(screen.getByRole('heading', {level:1, name:'ゲーム'})).toBeTruthy();
-    await user.click(within(design).getByRole('button', {name:'ゲーム'}));
+    const nav = within(screen.getByRole('navigation', {name:'メインナビゲーション'}));
+    expect(nav.getAllByRole('button').map(button => button.textContent)).toEqual(['ホーム','ゲーム','メディア','デザイン','アニメーション','ローポリモデル']);
+    await user.click(nav.getByRole('button', {name:'デザイン'}));
+    expect(location.hash).toBe('#design');
+    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(28);
+    const design = within(screen.getByRole('group', {name:'デザインの一覧'}));
+    const game = exampleCatalogs.games.items[0];
+    await user.click(screen.getByRole('button', {name:`${game.name} の見本と特徴を見る`}));
+    expect(trackDetail).toHaveBeenLastCalledWith('games', game.id);
+    expect(document.querySelector('.detail-visual .game-sample')).toBeTruthy();
+    await user.click(screen.getByRole('button', {name:'閉じる'}));
+    await user.click(design.getByRole('button', {name:'ウェブ'}));
+    expect(location.hash).toBe('#styles');
+    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(16);
+    await user.click(design.getByRole('button', {name:'ゲーム'}));
     expect(location.hash).toBe('#games');
-    expect(screen.getByRole('heading', {level:1, name:'ゲームUI'})).toBeTruthy();
     expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(12);
-    for (const [name, hash] of [['モーション','#motion'], ['トランジション','#transitions']]) {
-      await user.click(within(animation).getByRole('button', {name}));
+    await user.type(screen.getByRole('searchbox'), '存在しない名前');
+    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(0);
+    await user.click(design.getByRole('button', {name:'すべて'}));
+    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(28);
+    await user.click(nav.getByRole('button', {name:'アニメーション'}));
+    expect(location.hash).toBe('#animation');
+    expect(document.querySelectorAll('#gallery .motion-card')).toHaveLength(25);
+    const transition = exampleCatalogs.transitions.items[0];
+    await user.click(screen.getByRole('button', {name:transition.ja}));
+    expect(trackDetail).toHaveBeenLastCalledWith('transitions', transition.id);
+    expect(document.querySelector('.detail-visual .transition-demo')).toBeTruthy();
+    await user.click(screen.getByRole('button', {name:'閉じる'}));
+    const animation = within(screen.getByRole('group', {name:'アニメーションの一覧'}));
+    for (const [name, hash, count] of [['モーション','#motion',13], ['トランジション','#transitions',12]] as const) {
+      await user.click(animation.getByRole('button', {name}));
       expect(location.hash).toBe(hash);
-      expect(screen.getByRole('heading', {level:1, name})).toBeTruthy();
+      expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(count);
     }
+    history.replaceState(null, '', '/#animation');
+    fireEvent(window, new PopStateEvent('popstate'));
+    expect(animation.getByRole('button', {name:'すべて'}).getAttribute('aria-pressed')).toBe('true');
+    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(25);
   });
   it('starts desktop navigation closed and preserves its toggle state across page navigation', async () => {
     const user = userEvent.setup(); renderApp();
@@ -63,7 +87,7 @@ describe('catalog interaction after the React migration', () => {
     expect(document.activeElement).toBe(screen.getByRole('button', {name:'メニューを閉じる'}));
     expect(within(document.querySelector('.site-header')!).queryByRole('link', {name:'冷凍チョコ ギャラリー ホーム'})).toBeNull();
     expect(document.querySelector('#sidebar')?.hasAttribute('inert')).toBe(false);
-    await user.click(screen.getByRole('button', {name:'ウェブ'}));
+    await user.click(screen.getByRole('button', {name:'デザイン'}));
     expect(screen.getByRole('button', {name:'メニューを閉じる'}).getAttribute('aria-expanded')).toBe('true');
     expect(document.querySelector('.workspace')?.classList.contains('sidebar-collapsed')).toBe(false);
     expect(screen.queryByRole('button', {name:'メニューの外側を押して閉じる'})).toBeNull();
@@ -100,9 +124,10 @@ describe('catalog interaction after the React migration', () => {
     const user = userEvent.setup(); renderApp();
     expect(screen.getByRole('heading', {name:'ホーム', level:1})).toBeTruthy();
     expect(screen.queryByRole('searchbox')).toBeNull();
-    expect(screen.getByRole('link', {name:'ウェブデザイン'}).getAttribute('href')).toBe('#styles');
+    expect(screen.getByRole('link', {name:'デザイン'}).getAttribute('href')).toBe('#design');
     await user.click(screen.getByRole('button', {name:'メニューを開く'}));
-    await user.click(screen.getByRole('button', {name:'ウェブ'}));
+    await user.click(screen.getByRole('button', {name:'デザイン'}));
+    await user.click(within(screen.getByRole('group', {name:'デザインの一覧'})).getByRole('button', {name:'ウェブ'}));
     expect(location.hash).toBe('#styles');
     expect(document.querySelectorAll('.style-card').length).toBe(16);
     history.replaceState(null, '', '/#home');
@@ -135,7 +160,7 @@ describe('catalog interaction after the React migration', () => {
     await user.click(screen.getByRole('button', {name:'リセット ↺'}));
     await user.click(screen.getByRole('button', {name:'楽しい・ポップ'}));
     expect(document.querySelectorAll('.style-card').length).toBeLessThan(16);
-    await user.click(screen.getByRole('button', {name:'すべて'}));
+    await user.click(within(document.querySelector('#filters')!).getByRole('button', {name:'すべて'}));
     await user.click(screen.getByRole('button', {name:'リスト表示'}));
     expect(document.querySelector('#gallery')?.classList.contains('list-view')).toBe(true);
     const opener = screen.getByRole('button', {name:'Minimalism の見本と特徴を見る'});
@@ -157,7 +182,9 @@ describe('catalog interaction after the React migration', () => {
     const user = userEvent.setup(); renderApp();
     await user.click(screen.getByRole('button', {name:'メニューを開く'}));
     for (const [label, count] of [['ゲームUI',12], ['モーション',13], ['トランジション',12]] as const) {
-      await user.click(label === 'ゲームUI' ? within(screen.getByRole('group', {name:'デザイン'})).getByRole('button', {name:'ゲーム'}) : screen.getByRole('button', {name:label}));
+      await user.click(screen.getByRole('button', {name:label === 'ゲームUI' ? 'デザイン' : 'アニメーション'}));
+      const choices = within(screen.getByRole('group', {name:label === 'ゲームUI' ? 'デザインの一覧' : 'アニメーションの一覧'}));
+      await user.click(choices.getByRole('button', {name:label === 'ゲームUI' ? 'ゲーム' : label}));
       expect(document.querySelectorAll('.style-card').length).toBe(count);
       const preview = document.querySelector<HTMLButtonElement>('#gallery .preview-button, #gallery .motion-stage')!;
       await user.click(preview);

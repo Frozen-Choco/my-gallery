@@ -1,6 +1,6 @@
 import {Fragment, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {trackDetail, trackPage} from './analytics';
-import {animatedPage, exampleCatalogs, matchItems, pageFromHash, titles} from './catalog';
+import {animatedPage, collectionFor, collectionLabels, collectionPages, exampleCatalogs, matchItems, pageFromHash, titles} from './catalog';
 import {loadModelCatalog} from './catalog/models';
 import {Brand} from './components/Brand';
 import {DetailDialog} from './components/DetailDialog';
@@ -8,21 +8,17 @@ import {Icon, type IconName} from './components/Icon';
 import {ModelCard} from './components/ModelPreview';
 import {PersonalPages} from './components/PersonalPages';
 import {Specimen} from './components/Specimen';
-import type {ExampleItem, Model, ModelCatalog, ModelStatus, Page, SitePage, Selection} from './types';
+import type {ExampleItem, ExamplePage, Model, ModelCatalog, ModelStatus, Page, SitePage, Selection} from './types';
 
 const pageSize = 60;
-type NavigationItem = {page: SitePage; icon: IconName; label?: string};
-type NavigationEntry = (NavigationItem | {group: string; icon: IconName; children: NavigationItem[]}) & {divider?: boolean};
-const navigation: NavigationEntry[] = [
+type NavigationItem = {page: SitePage; icon: IconName; divider?: boolean};
+type SourcedItem = (ExampleItem | Model) & {sourcePage: Page};
+const navigation: NavigationItem[] = [
   {page:'home', icon:'home', divider:true},
   {page:'works', icon:'game', divider:true},
   {page:'media', icon:'video'},
-  {group:'デザイン', icon:'grid', divider:true, children:[
-    {page:'styles', icon:'web', label:'ウェブ'}, {page:'games', icon:'game', label:'ゲーム'},
-  ]},
-  {group:'アニメーション', icon:'motion', children:[
-    {page:'motion', icon:'motion'}, {page:'transitions', icon:'layers'},
-  ]},
+  {page:'design', icon:'grid', divider:true},
+  {page:'animation', icon:'motion'},
   {page:'models', icon:'cube'},
 ];
 function useModels(active: boolean) {
@@ -53,7 +49,8 @@ function Pagination({page, pages, top = false, onChange}: {page: number; pages: 
 export function App() {
   const [route, setPage] = useState<SitePage>(() => pageFromHash(location.hash));
   const personalPage = route === 'home' || route === 'works' || route === 'media' ? route : null;
-  const page: Page = route === 'home' || route === 'works' || route === 'media' ? 'styles' : route;
+  const collection = collectionFor(route);
+  const page: Page = personalPage || route === 'design' ? 'styles' : route === 'animation' ? 'motion' : route as Page;
   const [filter, setFilter] = useState('すべて');
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<'default' | 'name'>('default');
@@ -107,8 +104,15 @@ export function App() {
   const toast = useCallback((text: string) => {
     setMessage(text); clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setMessage(''), 2600);
   }, []);
-  const catalog = page === 'models' ? models.catalog : exampleCatalogs[page];
-  const matched = useMemo(() => matchItems<ExampleItem | Model>(catalog.items, filter, query, sort), [catalog.items, filter, query, sort]);
+  const catalog = useMemo(() => {
+    if (page === 'models') return {items: models.catalog.items.map(item => ({...item, sourcePage:'models' as const})), filters:models.catalog.filters};
+    const sources: ExamplePage[] = route === 'design' || route === 'animation' ? collectionPages[route] : [page];
+    return {
+      items: sources.flatMap(sourcePage => exampleCatalogs[sourcePage].items.map(item => ({...item, sourcePage}))),
+      filters: [...new Set(sources.flatMap(sourcePage => exampleCatalogs[sourcePage].filters))],
+    };
+  }, [route, page, models.catalog]);
+  const matched = useMemo(() => matchItems<SourcedItem>(catalog.items, filter, query, sort), [catalog.items, filter, query, sort]);
   const pages = page === 'models' ? Math.max(1, Math.ceil(matched.length / pageSize)) : 1;
   const currentPage = Math.min(modelPage, pages), start = (currentPage - 1) * pageSize;
   const visible = page === 'models' ? matched.slice(start, start + pageSize) : matched;
@@ -118,7 +122,8 @@ export function App() {
     paginationFocus.current = false; resultsRef.current?.scrollIntoView({block: 'start'});
     resultsRef.current?.querySelector<HTMLSelectElement>('[data-model-page]')?.focus({preventScroll: true});
   }, [currentPage]);
-  function openDetail(item: ExampleItem | Model) {
+  function openDetail(item: SourcedItem) {
+    const page = item.sourcePage;
     trackDetail(page, item.id);
     setSelection(page === 'models' ? {page, item: item as Model} : {page, item: item as ExampleItem});
   }
@@ -126,7 +131,7 @@ export function App() {
   const empty = matched.length === 0 && !(page === 'models' && ['idle', 'loading', 'error'].includes(models.status));
   const status = page === 'models' ? models.status : '';
   function navigationButton(item: NavigationItem) {
-    return <button key={item.page} className={`nav-item${route === item.page ? ' active' : ''}`} data-page={item.page} aria-current={route === item.page ? 'page' : undefined} onClick={() => navigate(item.page)}><span><Icon name={item.icon}/></span><span>{item.label ?? titles[item.page]}</span></button>;
+    return <button key={item.page} className={`nav-item${(collection ?? route) === item.page ? ' active' : ''}`} data-page={item.page} aria-current={(collection ?? route) === item.page ? 'page' : undefined} onClick={() => navigate(item.page)}><span><Icon name={item.icon}/></span><span>{titles[item.page]}</span></button>;
   }
   return <>
     <a href="#main" className="skip">コンテンツへ移動</a>
@@ -135,23 +140,26 @@ export function App() {
       {sidebarVisible && <button ref={sidebarCloseRef} type="button" className="icon-button sidebar-close" title="メニューを閉じる" aria-label="メニューを閉じる" aria-expanded={true} aria-controls="sidebar" onClick={() => changeSidebar(false)}><Icon name="collapse"/></button>}
       <div className="sidebar-content">
       <Brand/>
-      <nav aria-label="メインナビゲーション">{navigation.map(entry => <Fragment key={'page' in entry ? entry.page : entry.group}>
+      <nav aria-label="メインナビゲーション">{navigation.map(entry => <Fragment key={entry.page}>
         {entry.divider && <hr className="sidebar-divider" aria-hidden="true"/>}
-        {'page' in entry ? navigationButton(entry) : <div className="nav-group" role="group" aria-label={entry.group}>
-          <div className="nav-group-title"><Icon name={entry.icon}/><span>{entry.group}</span></div>
-          <div className="nav-children">{entry.children.map(navigationButton)}</div>
-        </div>}
+        {navigationButton(entry)}
       </Fragment>)}</nav>
       <a className="privacy-link" href="./privacy.html">プライバシー</a>
       </div>
     </aside>
     <div className={`workspace${!mobile && !desktopSidebarOpen ? ' sidebar-collapsed' : ''}`}><header className={`site-header${!sidebarVisible ? ' menu-visible' : ''}`}>
-      <div className="catalog-heading"><div className="section-title">{!sidebarVisible && <button ref={menuRef} id="menu-button" className="icon-button menu-open" title="メニューを開く" aria-label="メニューを開く" aria-expanded={false} aria-controls="sidebar" onClick={() => changeSidebar(true)}><Icon name="menu"/></button>}<h1 id="catalog-title">{titles[route]}</h1></div>
+      <div className="catalog-heading"><div className="section-title">{!sidebarVisible && <button ref={menuRef} id="menu-button" className="icon-button menu-open" title="メニューを開く" aria-label="メニューを開く" aria-expanded={false} aria-controls="sidebar" onClick={() => changeSidebar(true)}><Icon name="menu"/></button>}<h1 id="catalog-title">{titles[collection ?? route]}</h1></div>
       </div>
       <div className="header-brand-viewport" aria-hidden={sidebarVisible} inert={sidebarVisible}><Brand header/></div>
       </header><main id="main"><section className="catalog" aria-labelledby="catalog-title">
       {personalPage ? <PersonalPages page={personalPage} models={models.catalog.items}/> : <>
-      <div className="catalog-search"><label className="search-box"><Icon name="search"/><input ref={searchRef} id="search" type="search" placeholder={page === 'models' ? 'モデル名・カテゴリで検索' : isAnimated ? '効果・特徴で検索' : 'スタイル・特徴で検索'} autoComplete="off" aria-label={`${titles[page]}・キーワードを検索`} value={query} onChange={event => {setQuery(event.target.value); setModelPage(1);}}/><kbd>/</kbd></label></div>
+      <div className="catalog-toolbar">
+      {collection && <div className="collection-switch" role="group" aria-label={`${titles[collection]}の一覧`}>
+        <button className={route === collection ? 'selected' : ''} aria-pressed={route === collection} onClick={() => navigate(collection)}>すべて</button>
+        {collectionPages[collection].map(child => <button key={child} className={route === child ? 'selected' : ''} aria-pressed={route === child} onClick={() => navigate(child)}>{collectionLabels[child]}</button>)}
+      </div>}
+      <div className="catalog-search"><label className="search-box"><Icon name="search"/><input ref={searchRef} id="search" type="search" placeholder={page === 'models' ? 'モデル名・カテゴリで検索' : isAnimated ? '効果・特徴で検索' : 'スタイル・特徴で検索'} autoComplete="off" aria-label={`${titles[collection ?? page]}・キーワードを検索`} value={query} onChange={event => {setQuery(event.target.value); setModelPage(1);}}/><kbd>/</kbd></label></div>
+      </div>
       <div className="filter-row"><div id="filters" className="filters" aria-label={page === 'models' ? 'カテゴリで絞り込む' : isAnimated ? '効果で絞り込む' : page === 'games' ? '見た目で絞り込む' : '印象で絞り込む'}>
         {catalog.filters.map(value => <button key={value} className={`filter-chip${filter === value ? ' active' : ''}`} aria-pressed={filter === value} data-filter={value} onClick={() => {setFilter(value); setModelPage(1);}}>{value}</button>)}
       </div><button id="filter-reset" className={`text-button${!query.trim() && filter === 'すべて' ? ' hidden' : ''}`} onClick={reset}>リセット ↺</button></div>
@@ -165,10 +173,14 @@ export function App() {
         </div>
       </div>
       <div id="gallery" className={`gallery${page === 'models' ? ' models-gallery' : ''}${view === 'list' ? ' list-view' : ''}`}>
-        {visible.map(item => page === 'models' ? <ModelCard key={item.id} model={item as Model} onOpen={() => openDetail(item)}/> : <article key={item.id} className={`style-card${isAnimated ? ' motion-card' : ''}`} data-id={item.id}>
-          {isAnimated ? <Specimen page={page} item={item} paused={selection !== null} onOpen={() => openDetail(item)}/> : <button className="preview-button" data-detail={item.id} aria-label={`${item.name} の見本と特徴を見る`} onClick={() => openDetail(item)}><Specimen page={page} item={item}/></button>}
-          <div className="card-info"><button className="card-title" onClick={() => openDetail(item)}><h2>{item.ja}</h2></button><p className="card-description">{item.description}</p></div>
-        </article>)}
+        {visible.map(item => {
+          const itemPage = item.sourcePage, itemAnimated = animatedPage(itemPage);
+          if (itemPage === 'models') return <ModelCard key={`models:${item.id}`} model={item as Model} onOpen={() => openDetail(item)}/>;
+          return <article key={`${itemPage}:${item.id}`} className={`style-card${itemAnimated ? ' motion-card' : ''}`} data-id={item.id}>
+            {itemAnimated ? <Specimen page={itemPage} item={item} paused={selection !== null} onOpen={() => openDetail(item)}/> : <button className="preview-button" data-detail={item.id} aria-label={`${item.name} の見本と特徴を見る`} onClick={() => openDetail(item)}><Specimen page={itemPage} item={item}/></button>}
+            <div className="card-info"><button className="card-title" onClick={() => openDetail(item)}><h2>{item.ja}</h2></button><p className="card-description">{item.description}</p></div>
+          </article>;
+        })}
       </div>
       <Pagination page={currentPage} pages={pages} onChange={changeModelPage}/>
       <div id="empty" className={`empty${empty ? '' : ' hidden'}`}><p id="empty-message">該当する見本がありません。</p><button id="empty-reset" className="primary-button" onClick={reset}>絞り込みを解除</button></div>

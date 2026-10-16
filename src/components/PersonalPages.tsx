@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
-import type {PersonalPage, ExamplePage, Model} from '../types';
-import {exampleCatalogs, titles} from '../catalog';
+import type {PersonalPage, Model} from '../types';
+import {collectionPages, exampleCatalogs, titles} from '../catalog';
 import {featuredPublications, publishedGames, youtube, type Publication, type Video} from '../catalog/publications';
 import {Icon} from './Icon';
 import {Specimen} from './Specimen';
@@ -79,17 +79,18 @@ function MediaPage({videos}: {videos: Video[]}) {
     {!videos.length && <p className="video-empty">まだ投稿動画はありません。</p>}
   </>;
 }
-const destinations = ['works', 'media', 'styles', 'games', 'motion', 'transitions', 'models'] as const;
+const destinations = ['works', 'media', 'design', 'animation', 'models'] as const;
 const savedModels = normalizeModels(savedModelCatalog).items;
 function PageThumbnail({id, videos, models, offset}: {id: typeof destinations[number]; videos: Video[]; models: Model[]; offset: number}) {
   const modelItems = models.length ? models : savedModels;
-  const count = id === 'works' ? publishedGames.length : id === 'media' ? videos.length : id === 'models' ? modelItems.length : exampleCatalogs[id].items.length;
+  const specimens = id === 'design' || id === 'animation' ? collectionPages[id].flatMap(page => exampleCatalogs[page].items.map(item => ({page, item}))) : [];
+  const count = id === 'works' ? publishedGames.length : id === 'media' ? videos.length : id === 'models' ? modelItems.length : specimens.length;
   function renderSlide(index: number) {
     if (id === 'works') return publishedGames[index] ? <PublicationArtwork item={publishedGames[index]}/> : <Icon name="game"/>;
     if (id === 'media') return videos[index] ? <PublicationArtwork item={videos[index]}/> : <span className="media-thumbnail"><YouTubeSymbol/></span>;
     if (id === 'models') return modelItems[index] ? <img className="model-thumbnail" src={modelItems[index].preview} alt="" loading="lazy"/> : <Icon name="cube"/>;
-    const page: ExamplePage = id;
-    return <Specimen page={page} item={exampleCatalogs[page].items[index]} detail/>;
+    const {page, item} = specimens[index];
+    return <Specimen page={page} item={item} detail/>;
   }
   return <ThumbnailSlideshow count={count} renderSlide={renderSlide} interval={5200 + offset * 350}/>;
 }
