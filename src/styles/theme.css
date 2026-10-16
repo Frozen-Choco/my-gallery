@@ -88,3 +88,19 @@
   .sidebar:not(.open) { transform: translateX(-100%); }
   .workspace.sidebar-collapsed { margin-left: 0; }
 }
+
+/* Keep previews at the same scale when desktop navigation changes the available width. */
+@media (min-width: 761px) {
+  .gallery:not(.list-view), .page-links, .published-games, .video-grid {
+    grid-template-columns: repeat(auto-fill, 300px);
+    justify-content: start;
+  }
+  .gallery.models-gallery:not(.list-view) {
+    grid-template-columns: repeat(auto-fill, 176px);
+  }
+  .featured-banner {
+    /* Reserve the sidebar, content gutters and scrollbar in either navigation state. */
+    width: min(960px, calc(100vw - var(--sidebar) - 2 * var(--content-gutter) - 24px));
+    max-width: 100%;
+  }
+}
