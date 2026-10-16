@@ -141,31 +141,46 @@
   .site-header { --header-brand-width: 88px; }
   .site-header.menu-visible .section-title { max-width: calc(100% - var(--header-brand-width) - 8px); }
 }
-/* The header and its logo travel by the same sidebar width, with the same timing. */
+/* A small surface grows from the menu button; only transform/opacity animate. */
+.sidebar, .sidebar.open { transform: none; clip-path: none; background: transparent; border: 0; box-shadow: none; }
+.sidebar { visibility: hidden; pointer-events: none; transition: visibility 0s 360ms; }
+.sidebar.open { visibility: visible; pointer-events: auto; transition-delay: 0s; }
+.sidebar-surface {
+  position: absolute; inset: 0; z-index: -1;
+  background: var(--cream); border-right: 1px solid #e8d9b6;
+  border-radius: 10px; transform-origin: 0 0;
+  transform: translate3d(var(--menu-inset), var(--menu-inset), 0) scale(var(--closed-scale-x, .2), var(--closed-scale-y, .06));
+  transition: transform 360ms cubic-bezier(.22,.61,.36,1);
+  will-change: transform; pointer-events: none;
+}
+.sidebar.open .sidebar-surface { transform: translate3d(0, 0, 0) scale(1); }
+.sidebar-content {
+  opacity: 0; transform: translate3d(-12px, -8px, 0);
+  transition: opacity 100ms, transform 240ms cubic-bezier(.22,.61,.36,1);
+  will-change: transform, opacity;
+}
+.sidebar.open .sidebar-content { opacity: 1; transform: translate3d(0, 0, 0); transition-delay: 90ms; }
+.sidebar-close { opacity: 0; transform: translate3d(-16px, 0, 0) scale(.7); transition: opacity 90ms, transform 240ms cubic-bezier(.22,.61,.36,1); }
+.sidebar.open .sidebar-close { opacity: 1; transform: translate3d(0, 0, 0) scale(1); transition-delay: 100ms; }
+.sidebar-space { display: none; }
 @media (min-width: 761px) {
   .workspace { transition: margin-left 360ms cubic-bezier(.22,.61,.36,1); }
-}
-.sidebar, .sidebar.open { transform: none; }
-.sidebar {
-  clip-path: inset(var(--menu-inset) calc(100% - var(--menu-inset) - 44px) calc(100% - var(--menu-inset) - 44px) var(--menu-inset) round 10px);
-  visibility: hidden;
-  transition: clip-path 360ms cubic-bezier(.22,.61,.36,1), visibility 0s 360ms;
-}
-.sidebar.open { clip-path: inset(0 -44px 0 0 round 0); visibility: visible; transition-delay: 0s; }
-.sidebar-content { opacity: 0; transform: translateY(-8px); transition: opacity 140ms, transform 240ms; }
-.sidebar.open .sidebar-content { opacity: 1; transform: none; transition-delay: 70ms; }
-/* The panel edge and workspace share one distance, easing and start time. */
-@media (min-width: 761px) {
-  .sidebar {
-    clip-path: inset(0 -44px 0 0);
-    transform: translateX(-100%);
+  /* Fill the space vacated by the workspace while the surface grows vertically. */
+  .sidebar-space {
+    display: block; position: fixed; inset: 0 auto 0 0; width: var(--sidebar); z-index: 18;
+    background: var(--cream); pointer-events: none; visibility: hidden;
+    transform: translate3d(-100%, 0, 0);
     transition: transform 360ms cubic-bezier(.22,.61,.36,1), visibility 0s 360ms;
+    will-change: transform;
   }
-  .sidebar.open { transform: translateX(0); transition-delay: 0s; }
-  .sidebar-content, .sidebar.open .sidebar-content { opacity: 1; transform: none; transition: none; }
+  .sidebar-space.open { transform: translate3d(0, 0, 0); visibility: visible; transition-delay: 0s; }
+}
+@media (max-width: 760px) {
+  .workspace.menu-obscured * { animation-play-state: paused !important; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .header-brand-viewport .brand-header, .workspace, .sidebar, .sidebar-content { transition: none; }
+  .header-brand-viewport .brand-header, .workspace, .sidebar, .sidebar-space,
+  .sidebar-surface, .sidebar-content, .sidebar-close { transition: none; }
 }
 
 .catalog { container-type: inline-size; }
