@@ -48,6 +48,11 @@
   padding: 24px var(--content-gutter);
   min-height: var(--header-height);
 }
+.site-header.menu-visible .catalog-heading {
+  max-width: none;
+  padding-block: calc((var(--header-height) - 44px) / 2);
+  padding-left: calc((var(--header-height) - 44px) / 2);
+}
 .site-header h1 {
   font-family: var(--heading-font);
   font-weight: 900;
