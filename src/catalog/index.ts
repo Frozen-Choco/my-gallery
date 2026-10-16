@@ -3,18 +3,19 @@ import {sampleMarkup} from './samples';
 import {games, gameFilters, gameMarkup, gamePrompt} from './games';
 import {motions, motionFilters, motionMarkup, motionPrompt} from './motion';
 import {transitions, transitionFilters, transitionMarkup, transitionPrompt} from './transitions';
-import type {CatalogItem, CollectionPage, DesignStyle, ExampleItem, ExamplePage, GameStyle, MotionStyle, Page, SitePage} from '../types';
+import type {CatalogItem, CollectionListPage, CollectionPage, DesignStyle, ExampleItem, ExamplePage, GameStyle, MotionStyle, Page, SitePage} from '../types';
 
-export const titles: Record<SitePage, string> = {design:'デザイン', animation:'アニメーション', home:'ホーム', works:'ゲーム', media:'メディア', styles:'ウェブデザイン', games:'ゲームUI', motion:'モーション', transitions:'トランジション', models:'ローポリモデル'};
+export const titles: Record<SitePage, string> = {'design-all':'デザイン一覧', 'animation-all':'アニメーション一覧', design:'デザイン', animation:'アニメーション', home:'ホーム', works:'ゲーム', media:'メディア', styles:'ウェブデザイン', games:'ゲームUI', motion:'モーション', transitions:'トランジション', models:'ローポリモデル'};
 export const exampleCatalogs: Record<ExamplePage, {items: ExampleItem[]; filters: string[]}> = {
   styles: {items: styles, filters}, games: {items: games, filters: gameFilters},
   motion: {items: motions, filters: motionFilters}, transitions: {items: transitions, filters: transitionFilters},
 };
 export const collectionPages: Record<CollectionPage, ExamplePage[]> = {design:['styles', 'games'], animation:['motion', 'transitions']};
+export const collectionAllRoutes: Record<CollectionPage, CollectionListPage> = {design:'design-all', animation:'animation-all'};
 export const collectionLabels: Record<ExamplePage, string> = {styles:'ウェブ', games:'ゲーム', motion:'モーション', transitions:'トランジション'};
 export function collectionFor(page: SitePage): CollectionPage | null {
-  if (page === 'design' || page === 'styles' || page === 'games') return 'design';
-  if (page === 'animation' || page === 'motion' || page === 'transitions') return 'animation';
+  if (page === 'design-all' || page === 'design' || page === 'styles' || page === 'games') return 'design';
+  if (page === 'animation-all' || page === 'animation' || page === 'motion' || page === 'transitions') return 'animation';
   return null;
 }
 export function pageFromHash(hash: string): SitePage {

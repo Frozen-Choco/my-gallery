@@ -1,13 +1,14 @@
 import {Fragment, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {trackDetail, trackPage} from './analytics';
-import {animatedPage, collectionFor, collectionLabels, collectionPages, exampleCatalogs, matchItems, pageFromHash, titles} from './catalog';
+import {animatedPage, collectionAllRoutes, collectionFor, collectionLabels, collectionPages, exampleCatalogs, matchItems, pageFromHash, titles} from './catalog';
 import {loadModelCatalog} from './catalog/models';
 import {Brand} from './components/Brand';
 import {DetailDialog} from './components/DetailDialog';
 import {Icon, type IconName} from './components/Icon';
 import {ModelCard} from './components/ModelPreview';
 import {PersonalPages} from './components/PersonalPages';
-import {Specimen} from './components/Specimen';
+import {ExampleCard} from './components/ExampleCard';
+import {CollectionOverview} from './components/CollectionOverview';
 import type {ExampleItem, ExamplePage, Model, ModelCatalog, ModelStatus, Page, SitePage, Selection} from './types';
 
 const pageSize = 60;
@@ -50,7 +51,9 @@ export function App() {
   const [route, setPage] = useState<SitePage>(() => pageFromHash(location.hash));
   const personalPage = route === 'home' || route === 'works' || route === 'media' ? route : null;
   const collection = collectionFor(route);
-  const page: Page = personalPage || route === 'design' ? 'styles' : route === 'animation' ? 'motion' : route as Page;
+  const overview = route === 'design' || route === 'animation' ? route : null;
+  const combined = collection !== null && (route === collection || route === collectionAllRoutes[collection]);
+  const page: Page = personalPage ? 'styles' : combined ? collectionPages[collection][0] : route as Page;
   const [filter, setFilter] = useState('すべて');
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<'default' | 'name'>('default');
@@ -106,12 +109,12 @@ export function App() {
   }, []);
   const catalog = useMemo(() => {
     if (page === 'models') return {items: models.catalog.items.map(item => ({...item, sourcePage:'models' as const})), filters:models.catalog.filters};
-    const sources: ExamplePage[] = route === 'design' || route === 'animation' ? collectionPages[route] : [page];
+    const sources: ExamplePage[] = combined ? collectionPages[collection] : [page];
     return {
       items: sources.flatMap(sourcePage => exampleCatalogs[sourcePage].items.map(item => ({...item, sourcePage}))),
       filters: [...new Set(sources.flatMap(sourcePage => exampleCatalogs[sourcePage].filters))],
     };
-  }, [route, page, models.catalog]);
+  }, [combined, collection, page, models.catalog]);
   const matched = useMemo(() => matchItems<SourcedItem>(catalog.items, filter, query, sort), [catalog.items, filter, query, sort]);
   const pages = page === 'models' ? Math.max(1, Math.ceil(matched.length / pageSize)) : 1;
   const currentPage = Math.min(modelPage, pages), start = (currentPage - 1) * pageSize;
@@ -152,10 +155,11 @@ export function App() {
       </div>
       <div className="header-brand-viewport" aria-hidden={sidebarVisible} inert={sidebarVisible}><Brand header/></div>
       </header><main id="main"><section className="catalog" aria-labelledby="catalog-title">
-      {personalPage ? <PersonalPages page={personalPage} models={models.catalog.items}/> : <>
+      {personalPage ? <PersonalPages page={personalPage} models={models.catalog.items}/> : overview ? <CollectionOverview key={overview} collection={overview} onNavigate={navigate} paused={selection !== null} onOpen={({page:sourcePage, item}) => openDetail({...item, sourcePage})}/> : <>
+      {collection && <a className="collection-back" href={`#${collection}`} onClick={event => {if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button === 0) {event.preventDefault(); navigate(collection);}}}>← {titles[collection]}</a>}
       <div className="catalog-toolbar">
       {collection && <div className="collection-switch" role="group" aria-label={`${titles[collection]}の一覧`}>
-        <button className={route === collection ? 'selected' : ''} aria-pressed={route === collection} onClick={() => navigate(collection)}>すべて</button>
+        <button className={combined ? 'selected' : ''} aria-pressed={combined} onClick={() => navigate(collectionAllRoutes[collection])}>すべて</button>
         {collectionPages[collection].map(child => <button key={child} className={route === child ? 'selected' : ''} aria-pressed={route === child} onClick={() => navigate(child)}>{collectionLabels[child]}</button>)}
       </div>}
       <div className="catalog-search"><label className="search-box"><Icon name="search"/><input ref={searchRef} id="search" type="search" placeholder={page === 'models' ? 'モデル名・カテゴリで検索' : isAnimated ? '効果・特徴で検索' : 'スタイル・特徴で検索'} autoComplete="off" aria-label={`${titles[collection ?? page]}・キーワードを検索`} value={query} onChange={event => {setQuery(event.target.value); setModelPage(1);}}/><kbd>/</kbd></label></div>
@@ -174,12 +178,9 @@ export function App() {
       </div>
       <div id="gallery" className={`gallery${page === 'models' ? ' models-gallery' : ''}${view === 'list' ? ' list-view' : ''}`}>
         {visible.map(item => {
-          const itemPage = item.sourcePage, itemAnimated = animatedPage(itemPage);
+          const itemPage = item.sourcePage;
           if (itemPage === 'models') return <ModelCard key={`models:${item.id}`} model={item as Model} onOpen={() => openDetail(item)}/>;
-          return <article key={`${itemPage}:${item.id}`} className={`style-card${itemAnimated ? ' motion-card' : ''}`} data-id={item.id}>
-            {itemAnimated ? <Specimen page={itemPage} item={item} paused={selection !== null} onOpen={() => openDetail(item)}/> : <button className="preview-button" data-detail={item.id} aria-label={`${item.name} の見本と特徴を見る`} onClick={() => openDetail(item)}><Specimen page={itemPage} item={item}/></button>}
-            <div className="card-info"><button className="card-title" onClick={() => openDetail(item)}><h2>{item.ja}</h2></button><p className="card-description">{item.description}</p></div>
-          </article>;
+          return <ExampleCard key={`${itemPage}:${item.id}`} page={itemPage} item={item as ExampleItem} paused={selection !== null} onOpen={() => openDetail(item)}/>;
         })}
       </div>
       <Pagination page={currentPage} pages={pages} onChange={changeModelPage}/>

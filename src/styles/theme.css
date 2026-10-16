@@ -161,3 +161,29 @@
 .catalog-toolbar .collection-switch { margin-bottom: 0; }
 .catalog-toolbar .catalog-search { margin: 0 0 0 auto; }
 @media (max-width: 480px) { .catalog-toolbar .catalog-search { width: 100%; } .catalog-toolbar .search-box { width: 100%; } }
+
+.collection-back { display: inline-block; margin: 0 0 18px; font: 700 12px var(--heading-font); color: #805136; text-decoration: none; }
+.collection-back:hover { text-decoration: underline; text-underline-offset: 4px; }
+.collection-overview { display: grid; gap: 32px; min-width: 0; }
+.preview-row { min-width: 0; }
+.preview-row-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.preview-row-heading > h2 { font: 700 18px var(--heading-font); }
+.preview-row-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.preview-row-actions > a { margin-left: 12px; font-size: 12px; text-decoration: none; color: #805136; }
+.preview-row-actions > a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.rail-arrow { width: 30px; height: 30px; border: 1px solid #e4d9c9; border-radius: 50%; color: #805136; }
+.rail-arrow:hover:not(:disabled) { background: #fff3d6; }
+.rail-arrow:disabled { opacity: .3; cursor: default; }
+.preview-rail { display: flex; gap: 22px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: thin; scrollbar-color: #d5c9b8 transparent; padding: 4px 4px 14px; margin: -4px -4px 0; }
+.preview-rail > .style-card { width: 300px; flex: 0 0 300px; scroll-snap-align: start; }
+.preview-rail .card-description { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+@media (max-width: 760px) {
+  .preview-rail { gap: 16px; }
+  .preview-rail > .style-card { width: 240px; flex-basis: 240px; }
+  .preview-row-heading > h2 { font-size: 16px; }
+}
+@media (max-width: 480px) {
+  .preview-rail > .style-card { width: min(240px, 72vw); flex-basis: min(240px, 72vw); }
+  .preview-row-actions > a { margin-left: 6px; font-size: 11px; }
+  .rail-arrow { width: 27px; height: 27px; }
+}

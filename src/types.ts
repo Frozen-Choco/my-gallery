@@ -1,7 +1,8 @@
 export type Page = 'styles' | 'games' | 'motion' | 'transitions' | 'models';
 export type PersonalPage = 'home' | 'works' | 'media';
 export type CollectionPage = 'design' | 'animation';
-export type SitePage = Page | PersonalPage | CollectionPage;
+export type CollectionListPage = 'design-all' | 'animation-all';
+export type SitePage = Page | PersonalPage | CollectionPage | CollectionListPage;
 export type ExamplePage = Exclude<Page, 'models'>;
 export interface CatalogItem {
   id: string;
