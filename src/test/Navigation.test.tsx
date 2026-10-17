@@ -35,17 +35,19 @@ describe('shared page navigation', () => {
     expect(screen.queryByRole('navigation')).toBeNull();
   });
 
-  it.each(['game','video'] as const)('paginates %s publications in source order and returns focus to the upper control', async kind => {
+  it.each(['game','video'] as const)('paginates %s publications in source order and returns focus to the results', async kind => {
     const user = userEvent.setup();
     const items = Array.from({length:49}, (_, index) => ({id:`item-${index}`, title:`作品 ${index + 1}`, kind, url:`https://example.com/${index}`, thumbnail:'./thumbnail.png'}));
     const {rerender} = render(<PublicationList items={items} kind={kind}/>);
     expect(screen.getByText('1–24 / 49件')).toBeTruthy();
     expect(screen.getAllByRole('link')).toHaveLength(24);
-    const bottom = within(screen.getByRole('navigation', {name:'ページ送り（下部）'}));
+    const bottom = within(screen.getByRole('navigation', {name:'ページ送り'}));
     await user.click(bottom.getByRole('button', {name:'2ページ'}));
     expect(screen.getByText('25–48 / 49件')).toBeTruthy();
     expect(screen.getAllByRole('heading')[0].textContent).toContain('作品 25');
-    expect(document.activeElement).toBe(screen.getByRole('combobox', {name:'ページを選択'}));
+    expect(document.activeElement).toBe(document.querySelector('.publication-results'));
+    expect(screen.queryByRole('combobox')).toBeNull();
+    expect(screen.getAllByRole('navigation', {name:'ページ送り'})).toHaveLength(1);
     await user.click(bottom.getByRole('button', {name:'次のページ'}));
     expect(screen.getAllByRole('link')).toHaveLength(1);
     expect(screen.getByText('49–49 / 49件')).toBeTruthy();

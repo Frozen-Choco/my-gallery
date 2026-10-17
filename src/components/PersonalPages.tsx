@@ -195,13 +195,12 @@ export function PublicationList({items, kind}: {items: Publication[]; kind: 'gam
     if (!moveFocus.current) return;
     moveFocus.current = false;
     top.current?.scrollIntoView({block:'start'});
-    top.current?.querySelector<HTMLSelectElement>('[data-page-select]')?.focus({preventScroll:true});
+    top.current?.focus({preventScroll:true});
   }, [current]);
   function changePage(next: number) {moveFocus.current = true; setPage(next);}
   return <>
-    {items.length > 0 && <div className="results-bar publication-results" ref={top}>
+    {items.length > 0 && <div className="results-bar publication-results" ref={top} tabIndex={-1}>
       <p aria-live="polite">{pages > 1 ? `${start + 1}–${Math.min(start + contentPageSize, items.length)} / ${items.length}件` : `${items.length}件`}</p>
-      <Pagination top page={current} pages={pages} onChange={changePage}/>
     </div>}
     <div className={kind === 'game' ? 'published-games' : 'video-grid'}>{items.slice(start, start + contentPageSize).map(item =>
       <a className={kind === 'game' ? 'published-game' : 'video-card'} key={item.id} href={item.url} target="_blank" rel="noopener noreferrer" aria-label={`${item.title}を${kind === 'game' ? 'itch.io' : 'YouTube'}で見る（新しいタブ）`}>

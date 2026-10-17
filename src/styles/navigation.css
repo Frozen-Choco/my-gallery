@@ -5,16 +5,12 @@
 .breadcrumbs a { color: var(--ui-link); text-decoration: none; }
 .breadcrumbs a:hover { text-decoration: underline; text-underline-offset: 4px; }
 .pagination { display: flex; align-items: center; justify-content: center; gap: 2px; margin-top: 28px; color: var(--ui-link); font-size: var(--ui-size-control); }
-.pagination-top { margin: 0; }
-.pagination button, .pagination select { min-width: 32px; min-height: 36px; padding: 4px 8px; border: 1px solid var(--ui-border); border-radius: 5px; background: var(--ui-surface); color: inherit; font: inherit; }
-.pagination button:hover:not(:disabled), .pagination select:hover { background: var(--ui-selected); }
+.pagination button { min-width: 32px; min-height: 36px; padding: 4px 8px; border: 1px solid var(--ui-border); border-radius: 5px; background: var(--ui-surface); color: inherit; font: inherit; }
+.pagination button:hover:not(:disabled) { background: var(--ui-selected); }
 .pagination button[aria-current] { background: var(--ui-link); border-color: var(--ui-link); color: white; }
 .pagination button > span { font-size: 20px; line-height: 1; }
-.pagination select { cursor: pointer; }
 .pagination-gap { width: 8px; text-align: center; }
-.results-bar:has(.pagination-top) { height: auto; min-height: 59px; flex-wrap: wrap; gap: 8px; padding-block: 10px; }
 .publication-results { scroll-margin-top: calc(var(--header-height) + 12px); }
 @media(max-width: 760px) {
   .breadcrumbs { margin-bottom: 20px; }
-  .results-actions:has(.pagination-top) { gap: 8px; flex-wrap: wrap; }
 }

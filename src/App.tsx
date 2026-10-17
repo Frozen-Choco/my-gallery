@@ -121,7 +121,7 @@ export function App() {
   useEffect(() => {
     if (!paginationFocus.current) return;
     paginationFocus.current = false; resultsRef.current?.scrollIntoView({block: 'start'});
-    resultsRef.current?.querySelector<HTMLSelectElement>('[data-page-select]')?.focus({preventScroll: true});
+    resultsRef.current?.focus({preventScroll: true});
   }, [currentPage]);
   function openDetail(item: SourcedItem) {
     const page = item.sourcePage;
@@ -170,8 +170,8 @@ export function App() {
         {status === 'loading' ? 'モデルを読み込んでいます…' : status === 'fallback' ? '最新の一覧を取得できないため、保存済みの一覧を表示しています。' : status === 'error' ? 'モデルを読み込めませんでした。' : ''}
         {(status === 'fallback' || status === 'error') && <button onClick={models.retry}>再読み込み</button>}
       </p>
-      <div className="results-bar" ref={resultsRef}><p id="result-count" aria-live="polite">{pages > 1 ? `${start + 1}–${Math.min(start + pageSize, matched.length)} / ${matched.length}件` : `${matched.length}件`}</p>
-        <div className="results-actions"><Pagination page={currentPage} pages={pages} top onChange={changeListPage}/><label className="sort-label"><span className="sr-only">並び順</span><select id="sort" value={sort} onChange={event => {setSort(event.target.value as SortOrder); setListPage(1);}}><option value="name-asc">名前（昇順）</option><option value="name-desc">名前（降順）</option></select></label>
+      <div className="results-bar" ref={resultsRef} tabIndex={-1}><p id="result-count" aria-live="polite">{pages > 1 ? `${start + 1}–${Math.min(start + pageSize, matched.length)} / ${matched.length}件` : `${matched.length}件`}</p>
+        <div className="results-actions"><label className="sort-label"><span className="sr-only">並び順</span><select id="sort" value={sort} onChange={event => {setSort(event.target.value as SortOrder); setListPage(1);}}><option value="name-asc">名前（昇順）</option><option value="name-desc">名前（降順）</option></select></label>
           <div className="view-switch" aria-label="表示形式">{(['grid','list'] as const).map(value => <button key={value} className={`icon-button${view === value ? ' selected' : ''}`} data-view={value} aria-label={value === 'grid' ? 'グリッド表示' : 'リスト表示'} aria-pressed={view === value} onClick={() => setView(value)}><Icon name={value}/></button>)}</div>
         </div>
       </div>
