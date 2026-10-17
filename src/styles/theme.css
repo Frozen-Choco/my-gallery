@@ -42,13 +42,8 @@
 .sidebar .nav-item:hover { background: #f5e4be; }
 .workspace { display: flex; flex-direction: column; min-height: calc(100svh - var(--header-height)); margin-left: 0; scroll-margin-top: var(--header-height); }
 .workspace main { flex: 1; width: 100%; margin: 0 auto; }
-.site-footer { border-top: 1px solid #e8d9b6; background: var(--cream); color: #77604e; }
-.site-footer-inner { max-width: 1500px; margin-inline: auto; padding: 24px var(--content-gutter); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px 32px; }
-.site-footer a { text-decoration: none; }
-.site-footer a:hover { color: var(--crimson); text-decoration: underline; text-underline-offset: 4px; }
-.footer-name { font-family: var(--heading-font); font-size: 14px; font-weight: 700; color: #64412e; }
-.footer-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 24px; font-size: 12px; }
-.footer-meta small { font-size: inherit; }
+.site-footer { padding: 24px var(--content-gutter); border-top: 1px solid #e8d9b6; background: var(--cream); color: #77604e; text-align: center; font-size: 12px; }
+.site-footer small { font-size: inherit; }
 .nav-item { font-family: var(--heading-font); font-weight: 700; }
 .nav-item.active { color: #9d1c3c; }
 .sidebar-divider { border: 0; border-top: 1px solid #e8d9b6; margin: 12px 0; }
