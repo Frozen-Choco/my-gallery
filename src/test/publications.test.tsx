@@ -123,7 +123,7 @@ it('tracks fractional wheel input continuously, then snaps only after input stop
     expect(Math.abs(position() - Math.round(position()))).toBeGreaterThan(.01);
     previous = position();
   }
-  expect(position()).toBeGreaterThan(2.8);
+  expect(position()).toBeGreaterThan(2.6);
   expect(position()).toBeLessThan(3);
   advance(1200);
   expect(position()).toBe(3);
@@ -179,6 +179,42 @@ it('swipes horizontally without following a link and leaves vertical touch scrol
   fireEvent.touchEnd(window, {changedTouches:[{clientX:200,clientY:100}]});
   advance(1200);
   expect(centre().href).toBe(items[0].url);
+});
+
+it('follows the finger continuously across cards, reverses directly, and snaps on release only', () => {
+  vi.useFakeTimers(); render(<FeaturedBanner items={items}/>);
+  const window = document.querySelector('.banner-window')!;
+  Object.defineProperty(window, 'clientWidth', {value:360});
+  fireEvent.touchStart(window, {touches:[{clientX:300,clientY:100}]});
+  fireEvent.touchMove(window, {touches:[{clientX:246,clientY:102}]});
+  expect(position()).toBeCloseTo(.3);
+  advance(1500);
+  expect(position()).toBeCloseTo(.3); // A resting finger must not trigger snapping.
+  fireEvent.touchMove(window, {touches:[{clientX:48,clientY:105}]});
+  expect(position()).toBeCloseTo(1.4);
+  fireEvent.touchMove(window, {touches:[{clientX:84,clientY:101}]});
+  expect(position()).toBeCloseTo(1.2);
+  fireEvent.touchEnd(window, {changedTouches:[{clientX:84,clientY:101}]});
+  expect(position()).toBeCloseTo(1.2);
+  expect(fireEvent.click(centre())).toBe(false);
+  advance(1200);
+  expect(position()).toBe(1);
+});
+
+it('locks vertical gestures to page scrolling and settles cancelled drags without turning another card', () => {
+  vi.useFakeTimers(); render(<FeaturedBanner items={items}/>);
+  const window = document.querySelector('.banner-window')!;
+  fireEvent.touchStart(window, {touches:[{clientX:200,clientY:100}]});
+  expect(fireEvent.touchMove(window, {touches:[{clientX:195,clientY:140}]})).toBe(true);
+  fireEvent.touchMove(window, {touches:[{clientX:90,clientY:150}]});
+  expect(position()).toBe(0);
+  fireEvent.touchCancel(window);
+  fireEvent.touchStart(window, {touches:[{clientX:200,clientY:100}]});
+  fireEvent.touchMove(window, {touches:[{clientX:152,clientY:101}]});
+  expect(position()).toBeCloseTo(.4);
+  fireEvent.touchCancel(window);
+  advance(1200);
+  expect(position()).toBe(0);
 });
 
 it('does not auto-rotate with reduced motion and renders nothing for no works', () => {

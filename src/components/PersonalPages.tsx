@@ -30,11 +30,11 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
   const [interaction, setInteraction] = useState(0);
   const [touching, setTouching] = useState(false);
   const windowRef = useRef<HTMLDivElement>(null);
-  const touchStart = useRef<{x: number; y: number} | null>(null);
+  const touchStart = useRef<{x: number; y: number; axis: 'pending' | 'horizontal' | 'vertical'; stride: number} | null>(null);
   const suppressClickUntil = useRef(0);
   const [hidden, setHidden] = useState(document.hidden);
   const [reduced, setReduced] = useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
-  const {position, rotateBy, selectCard, scrollBy} = useBannerRotation(reduced);
+  const {position, rotateBy, selectCard, scrollBy, beginDrag, dragTo, endDrag} = useBannerRotation(reduced);
   const step = bannerIndex(position);
   useEffect(() => {
     const preference = matchMedia('(prefers-reduced-motion: reduce)');
@@ -73,27 +73,41 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
     if (distance >= 0) selectCard((step + distance) % 5);
   }
   function recordInteraction() {setInteraction(current => current + 1);}
+  function moveTouch(touch: {clientX: number; clientY: number}) {
+    const start = touchStart.current;
+    if (!start) return;
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    if (start.axis === 'pending' && Math.max(Math.abs(dx), Math.abs(dy)) >= 8) {
+      start.axis = Math.abs(dx) > Math.abs(dy) ? 'horizontal' : 'vertical';
+    }
+    if (start.axis === 'horizontal') dragTo(-dx / start.stride);
+  }
+  function finishTouch() {
+    if (touchStart.current) {
+      if (touchStart.current.axis === 'horizontal') suppressClickUntil.current = performance.now() + 500;
+      endDrag();
+    }
+    touchStart.current = null;
+    setTouching(false);
+  }
   return <section className="featured-banner" data-position={position} aria-label="新着作品" aria-roledescription="カルーセル"
     onMouseEnter={recordInteraction} onFocusCapture={recordInteraction}
     onClickCapture={recordInteraction} onKeyDownCapture={recordInteraction}>
     <div className="banner-window" ref={windowRef}
       onTouchStart={event => {
         const touch = event.touches.length === 1 ? event.touches[0] : null;
-        touchStart.current = touch ? {x:touch.clientX, y:touch.clientY} : null;
-        setTouching(!!touch);
+        if (!touch) {finishTouch(); setTouching(true); return;}
+        beginDrag();
+        touchStart.current = {x:touch.clientX, y:touch.clientY, axis:'pending', stride:Math.max(120, event.currentTarget.clientWidth / 2)};
+        setTouching(true);
       }}
-      onTouchCancel={() => {touchStart.current = null; setTouching(false);}}
+      onTouchMove={event => {if (event.touches.length === 1) moveTouch(event.touches[0]);}}
+      onTouchCancel={finishTouch}
       onTouchEnd={event => {
-        const start = touchStart.current;
-        const end = event.changedTouches[0];
-        touchStart.current = null;
-        setTouching(false);
-        if (!start || !end) return;
-        const dx = end.clientX - start.x;
-        const dy = end.clientY - start.y;
-        if (Math.abs(dx) < 40 || Math.abs(dx) <= Math.abs(dy)) return;
-        suppressClickUntil.current = performance.now() + 500;
-        rotateBy(dx < 0 ? 1 : -1);
+        if (event.changedTouches[0]) moveTouch(event.changedTouches[0]);
+        finishTouch();
+        if (event.touches.length) setTouching(true);
       }}><div className="banner-track">
       {sequence.map((item, index) => {
         const slot = (index - step + 7) % 5 - 2;
