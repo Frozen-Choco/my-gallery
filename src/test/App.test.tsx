@@ -208,8 +208,8 @@ describe('catalog interaction after the React migration', () => {
   it('publishes the supplied game and channel links without mixing them with game UI samples', async () => {
     history.replaceState(null, '', '/#works');
     const user = userEvent.setup(); renderApp();
-    const game = screen.getByRole('link', {name:'星屑のゆりかごをitch.ioで見る（新しいタブ）'});
-    expect(game.getAttribute('href')).toBe('https://frozen-choco.itch.io/stardust-cradle');
+    const game = screen.getByRole('link', {name:'星屑のゆりかごを開く（新しいタブ）'});
+    expect(game.getAttribute('href')).toBe('https://stardust-cradle-game.pages.dev/');
     expect(game.getAttribute('rel')).toContain('noopener');
     expect(screen.queryByRole('searchbox')).toBeNull();
     await user.click(screen.getByRole('button', {name:'メニューを開く'}));
