@@ -10,7 +10,12 @@ export function bannerPose(slot: number) {
   const t = phase - index;
   return [0, 1, 2].map(axis => {
     const [a, b, c, d] = [-1, 0, 1, 2].map(offset => poses[(index + offset + 5) % 5][axis]);
-    return .5 * (2 * b + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t * t + (-a + 3 * b - 3 * c + d) * t * t * t);
+    // Turn inward at the outer cards rather than overshooting the preview edges.
+    const tangent = (at: number, value: number) => axis === 0 && (at === 2 || at === 3) ? 0 : value;
+    const start = tangent(index, (c - a) / 2);
+    const end = tangent((index + 1) % 5, (d - b) / 2);
+    return (2 * t ** 3 - 3 * t ** 2 + 1) * b + (t ** 3 - 2 * t ** 2 + t) * start
+      + (-2 * t ** 3 + 3 * t ** 2) * c + (t ** 3 - t ** 2) * end;
   });
 }
 

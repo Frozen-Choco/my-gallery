@@ -158,6 +158,10 @@ it('keeps the full orbit continuous at the wrap and behind the other cards', () 
   }
   expect(bannerPose(2.5)[1]).toBeLessThan(-72);
   expect(bannerPose(0)).toEqual(bannerPose(5));
+  for (let phase = 0; phase < 5; phase += .01) {
+    const [x, z] = bannerPose(phase);
+    expect((Math.abs(x) + 27) / (1 - z / 100)).toBeLessThan(50);
+  }
 });
 
 it('swipes horizontally without following a link and leaves vertical touch scrolling alone', () => {
