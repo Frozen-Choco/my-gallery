@@ -212,6 +212,9 @@ export function PersonalPages({page, models = []}: {page: PersonalPage; models?:
   const featured = featuredPublications(videos);
   return <div className="home-page">
     <FeaturedBanner key={featured.map(item => item.id).join(',')} items={featured}/>
-    <div className="page-links">{destinations.map((item, index) => <a key={item} href={`#${item}`} className="page-link"><PageThumbnail id={item} videos={videos} models={models} offset={index}/><h2>{titles[item]}<Icon name="arrow"/></h2></a>)}</div>
+    <section className="page-links" aria-labelledby="home-contents-title">
+      <h2 id="home-contents-title" className="home-section-title">コンテンツ</h2>
+      {destinations.map((item, index) => <a key={item} href={`#${item}`} className="page-link"><PageThumbnail id={item} videos={videos} models={models} offset={index}/><h3>{titles[item]}<Icon name="arrow"/></h3></a>)}
+    </section>
   </div>;
 }

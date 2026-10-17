@@ -181,7 +181,11 @@ export function App() {
       <Pagination page={currentPage} pages={pages} onChange={changeModelPage}/>
       <div id="empty" className={`empty${empty ? '' : ' hidden'}`}><p id="empty-message">該当する見本がありません。</p><button id="empty-reset" className="primary-button" onClick={reset}>絞り込みを解除</button></div>
     </>}
-    </section></main></div>
+    </section></main>
+    <footer className="site-footer"><div className="site-footer-inner">
+      <a className="footer-name" href="#home">冷凍チョコ ギャラリー</a>
+      <div className="footer-meta"><a href="./privacy.html">プライバシー</a><small>© {new Date().getFullYear()} 冷凍チョコ</small></div>
+    </div></footer></div>
     {selection && <DetailDialog key={`${selection.page}:${selection.item.id}`} selection={selection} onClose={() => setSelection(null)} onToast={toast}/>}
     <div id="toast" className={`toast${message ? ' show' : ''}`} role="status">{message}</div>
   </>;
