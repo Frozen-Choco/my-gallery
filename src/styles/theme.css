@@ -145,7 +145,13 @@
   .catalog-toolbar .filter-row { grid-column: 1; grid-row: 2; }
 }
 
-.collection-overview { display: grid; gap: 32px; min-width: 0; }
+.collection-overview { display: grid; gap: 0; min-width: 0; }
+.preview-row + .preview-row, .featured-banner + .page-links {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--ui-section-divider);
+}
+.home-page > .featured-banner { margin-bottom: 0; }
 .preview-row { min-width: 0; }
 .preview-row-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
 .preview-row-heading > h2, .home-section-title { font: 900 var(--ui-size-section)/1.5 var(--heading-font); color: var(--ui-heading); }
@@ -169,6 +175,7 @@
 .preview-rail .card-title h3 { margin: 0; font: 700 var(--ui-size-card)/1.6 var(--heading-font); }
 .preview-rail :focus-visible { outline-offset: -3px; }
 @media (max-width: 760px) {
+  .preview-row + .preview-row, .featured-banner + .page-links { margin-top: 20px; padding-top: 20px; }
   .preview-row { --preview-width: 240px; }
   .preview-rail { gap: 16px; }
 }

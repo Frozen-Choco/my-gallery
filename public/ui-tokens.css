@@ -11,6 +11,7 @@
   --ui-link: #805136;
   --ui-surface: #fffdf7;
   --ui-border: #e1d6ca;
+  --ui-section-divider: color-mix(in srgb, var(--ui-link) 36%, var(--ui-border));
   --ui-selected: #f4d9cf;
   --ui-size-page: 1.625rem;
   --ui-size-section: 1.375rem;
