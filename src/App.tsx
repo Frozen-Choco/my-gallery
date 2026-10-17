@@ -1,4 +1,4 @@
-import {Fragment, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {trackDetail, trackPage} from './analytics';
 import {animatedPage, collectionAllRoutes, collectionFor, collectionPages, exampleCatalogs, matchItems, pageFromHash, titles} from './catalog';
 import {loadModelCatalog} from './catalog/models';
@@ -13,6 +13,7 @@ import {useLiquidSidebar} from './components/useLiquidSidebar';
 import type {ExampleItem, ExamplePage, Model, ModelCatalog, ModelStatus, Page, SitePage, Selection, SortOrder} from './types';
 
 const pageSize = 60;
+function scrollToPageTop() {window.scrollTo({top: 0, left: 0, behavior: 'instant'});}
 type NavigationItem = {page: SitePage; icon: IconName; divider?: boolean};
 type SourcedItem = (ExampleItem | Model) & {sourcePage: Page};
 const navigation: NavigationItem[] = [
@@ -76,13 +77,22 @@ export function App() {
   const paginationFocus = useRef(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const models = useModels(page === 'models' || route === 'home');
+  useLayoutEffect(() => {
+    const previous = history.scrollRestoration;
+    history.scrollRestoration = 'manual';
+    const pageshow = (event: PageTransitionEvent) => {if (event.persisted) scrollToPageTop();};
+    window.addEventListener('pageshow', pageshow);
+    return () => {history.scrollRestoration = previous; window.removeEventListener('pageshow', pageshow);};
+  }, []);
+  // Reset after the destination DOM is committed, for links, menu actions and browser history alike.
+  useLayoutEffect(scrollToPageTop, [route]);
   useEffect(() => {trackPage(route, titles[route]); document.title = `${titles[route]} | 冷凍チョコ ギャラリー`;}, [route]);
   const reset = useCallback(() => {setFilter('すべて'); setQuery(''); setModelPage(1);}, []);
   const navigate = useCallback((next: SitePage) => {
     setPage(next); reset(); setSidebarOpen(false); setSelection(null);
     if (location.hash !== '#' + next) history.pushState(null, '', '#' + next);
-    document.querySelector('.workspace')?.scrollIntoView({block: 'start'});
-  }, [reset]);
+    if (next === route) scrollToPageTop();
+  }, [reset, route]);
   useEffect(() => {
     const media = window.matchMedia('(max-width: 760px)');
     const resize = () => setMobile(media.matches);

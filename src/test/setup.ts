@@ -8,6 +8,7 @@ globalThis.ResizeObserver = class {
   disconnect() {}
 };
 HTMLElement.prototype.scrollIntoView = vi.fn();
+window.scrollTo = vi.fn();
 HTMLDialogElement.prototype.showModal = function() {this.setAttribute('open', '');};
 HTMLDialogElement.prototype.close = function() {this.removeAttribute('open');};
 export class FakeViewer extends HTMLElement {

@@ -21,6 +21,46 @@ function fixtureModels(count: number) {
   return Array.from({length: count}, (_, i) => ({id: `model_${String(i + 1).padStart(4,'0')}`, title_ja: `モデル ${String(i + 1).padStart(4,'0')}`, category: i % 2 ? 'household' : 'furniture', triangles: 640, vertices: 352, dimensions_m: [1, 2, 3], glb_bytes: 1000, blend_bytes: 2000, blender_version: '4.3.2'}));
 }
 describe('catalog interaction after the React migration', () => {
+  it('starts each page at the top after rendering, including direct URLs and browser history', async () => {
+    history.replaceState(null, '', '/#styles');
+    history.scrollRestoration = 'auto';
+    const headingsAtScroll: (string | null | undefined)[] = [];
+    vi.mocked(window.scrollTo).mockImplementation(() => {headingsAtScroll.push(document.querySelector('h1')?.textContent);});
+    const user = userEvent.setup();
+    const app = renderApp();
+    expect(history.scrollRestoration).toBe('manual');
+    expect(headingsAtScroll.at(-1)).toBe('ウェブデザイン');
+    headingsAtScroll.length = 0;
+    await user.selectOptions(screen.getByRole('combobox', {name:'並び順'}), 'name-desc');
+    await user.type(screen.getByRole('searchbox'), 'ミニマリズム');
+    await user.click(screen.getByRole('button', {name:'Minimalism の見本と特徴を見る'}));
+    await user.click(screen.getByRole('button', {name:'閉じる'}));
+    expect(headingsAtScroll).toEqual([]);
+    await user.click(screen.getByRole('link', {name:'← デザイン'}));
+    expect(headingsAtScroll).toEqual(['デザイン']);
+    headingsAtScroll.length = 0;
+    history.replaceState(null, '', '/#motion');
+    fireEvent(window, new HashChangeEvent('hashchange'));
+    expect(headingsAtScroll).toEqual(['モーション']);
+    headingsAtScroll.length = 0;
+    history.replaceState(null, '', '/#styles');
+    fireEvent(window, new PopStateEvent('popstate'));
+    expect(headingsAtScroll).toEqual(['ウェブデザイン']);
+    headingsAtScroll.length = 0;
+    history.replaceState(null, '', '/#main');
+    fireEvent(window, new HashChangeEvent('hashchange'));
+    fireEvent(window, new PageTransitionEvent('pageshow', {persisted:false}));
+    expect(headingsAtScroll).toEqual([]);
+    fireEvent(window, new PageTransitionEvent('pageshow', {persisted:true}));
+    expect(headingsAtScroll).toEqual(['ウェブデザイン']);
+    app.unmount();
+    expect(history.scrollRestoration).toBe('auto');
+    headingsAtScroll.length = 0;
+    fireEvent(window, new PageTransitionEvent('pageshow', {persisted:true}));
+    expect(headingsAtScroll).toEqual([]);
+    vi.mocked(window.scrollTo).mockReset();
+  });
+
   it('opens horizontal previews, then full filtered lists while preserving specimen types', async () => {
     const user = userEvent.setup(); renderApp();
     await user.click(screen.getByRole('button', {name:'メニューを開く'}));
@@ -39,9 +79,9 @@ describe('catalog interaction after the React migration', () => {
     expect(document.querySelector('.detail-visual .game-sample')).toBeTruthy();
     await user.click(screen.getByRole('button', {name:'閉じる'}));
     const previewNames = allRow.getAllByRole('heading', {level:3}).map(node => node.textContent);
-    vi.mocked(HTMLElement.prototype.scrollIntoView).mockClear();
+    vi.mocked(window.scrollTo).mockClear();
     await user.click(allRow.getByRole('link', {name:'すべて見る'}));
-    expect(HTMLElement.prototype.scrollIntoView).toHaveBeenCalledWith({block:'start'});
+    expect(window.scrollTo).toHaveBeenCalledWith({top:0, left:0, behavior:'instant'});
     expect(location.hash).toBe('#design-all');
     expect([...document.querySelectorAll('#gallery .card-title')].slice(0,8).map(node => node.textContent)).toEqual(previewNames);
     expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(28);
