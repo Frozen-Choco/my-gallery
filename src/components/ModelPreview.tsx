@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
 import {trackDownload} from '../analytics';
-import {formatCount, formatSize, modelRepository} from '../catalog/models';
+import {formatCount, formatSize} from '../catalog/models';
 import type {Model} from '../types';
 
 interface ViewerElement extends HTMLElement {
@@ -38,7 +38,7 @@ export function ModelCard({model, onOpen}: {model: Model; onOpen: () => void}) {
   return <article className="style-card model-card" data-id={model.id}>
     <button className="preview-button model-preview" data-detail={model.id} aria-label={`${model.ja}の詳細を見る`} onClick={onOpen}><ModelImage model={model}/></button>
     <div className="card-info"><button className="card-title" onClick={onOpen}><h2>{model.ja}</h2></button>
-      <p className="model-meta">{model.category[0]}<span>{formatCount(model.triangles)} tris</span></p><Downloads model={model}/>
+      <p className="model-meta">{model.category[0]}</p><Downloads model={model}/>
     </div>
   </article>;
 }
@@ -116,8 +116,7 @@ export function ModelDetail({model}: {model: Model}) {
         {dimensions && <div><dt>寸法（m）</dt><dd>{dimensions}<small>X × Y × Z ／ Blender座標</small></dd></div>}
         {model.blender && <div><dt>制作環境</dt><dd>Blender {model.blender}</dd></div>}
       </dl>
-      <Downloads model={model}/><p className="model-file-note">GLB：利用用 ／ Blend：編集用</p>
-      <p className="model-license"><a href={`${modelRepository}#ライセンス`} target="_blank" rel="noopener noreferrer">利用条件・配布元</a></p>
+      <Downloads model={model}/>
     </div>
   </div>;
 }

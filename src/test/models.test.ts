@@ -6,7 +6,7 @@ it('rejects unsafe paths, deduplicates entries and validates numeric metadata', 
   expect(data.items.map(m => m.id)).toEqual(['safe','second']);
   expect(data.items[0].triangles).toBeNull();
   expect(data.items[1].dimensions).toBeNull();
-  expect(data.filters).toEqual(['すべて','家具','unknown']);
+  expect(data.filters).toEqual(['すべて','家具','その他']);
   expect(() => normalizeModels({})).toThrow();
   expect(() => normalizeModels([{id:'../bad', category:'street'}])).toThrow();
   expect(normalizeModels([]).items).toEqual([]);
