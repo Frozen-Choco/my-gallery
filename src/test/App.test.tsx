@@ -362,24 +362,22 @@ describe('catalog interaction after the React migration', () => {
   });
 });
 
-it('tracks mobile swipes to open and close while retaining backdrop dismissal', () => {
+it('keeps mobile menu controls working without responding to swipes', () => {
   vi.stubGlobal('matchMedia', vi.fn((query: string) => ({matches:query === '(max-width: 760px)' || query === '(prefers-reduced-motion: reduce)',media:query,addEventListener:vi.fn(),removeEventListener:vi.fn()})));
   history.replaceState(null, '', '/#home');
   renderApp();
-  const main = screen.getByRole('main');
-  const point = (x: number) => ({identifier:1, clientX:x, clientY:300});
-  fireEvent.touchStart(main, {touches:[point(60)]});
-  fireEvent.touchMove(main, {touches:[point(170)]});
-  expect(document.querySelector('.sidebar')?.getAttribute('data-animating')).toBe('true');
+  const swipe = (target: Element, from: number, to: number) => {
+    const point = (x: number) => ({identifier:1, clientX:x, clientY:300});
+    fireEvent.touchStart(target, {touches:[point(from)]});
+    fireEvent.touchMove(target, {touches:[point(to)]});
+    fireEvent.touchEnd(target, {touches:[], changedTouches:[point(to)]});
+  };
+  swipe(screen.getByRole('main'), 60, 170);
   expect(screen.getByRole('button', {name:'メニューを開く'}).getAttribute('aria-expanded')).toBe('false');
-  fireEvent.touchEnd(main, {touches:[], changedTouches:[point(170)]});
+  fireEvent.click(screen.getByRole('button', {name:'メニューを開く'}));
+  swipe(document.querySelector('.sidebar-content')!, 180, 70);
   expect(screen.getByRole('button', {name:'メニューを閉じる'}).getAttribute('aria-expanded')).toBe('true');
-  const panel = document.querySelector('.sidebar-content')!;
-  fireEvent.touchStart(panel, {touches:[point(180)]});
-  fireEvent.touchMove(panel, {touches:[point(70)]});
-  expect(document.querySelector('.sidebar')?.getAttribute('data-animating')).toBe('true');
-  fireEvent.touchEnd(panel, {touches:[], changedTouches:[point(70)]});
-  expect(screen.getByRole('button', {name:'メニューを開く'}).getAttribute('aria-expanded')).toBe('false');
+  fireEvent.click(screen.getByRole('button', {name:'メニューを閉じる'}));
   fireEvent.click(screen.getByRole('button', {name:'メニューを開く'}));
   fireEvent.click(screen.getByRole('button', {name:'メニューの外側を押して閉じる'}));
   expect(screen.getByRole('button', {name:'メニューを開く'}).getAttribute('aria-expanded')).toBe('false');
