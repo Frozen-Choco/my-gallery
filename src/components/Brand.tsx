@@ -24,6 +24,7 @@ function HeaderLogo({id}: {id: string}) {
       {frozenLetters.map(({letter}, index) => <clipPath key={letter} id={`${id}-ice-${index}`}>
       <text x="-34" y="26" className="brand-frozen">{letter}</text>
     </clipPath>)}</defs>
+    <g transform="translate(-4 0) scale(1.18 1)">
     {frozenLetters.map(({letter, transform}, index) => <g key={letter} transform={transform}>
       <text x="-34" y="26" className="brand-frozen brand-ice brand-ice-outlined">{letter}</text>
       <g className="brand-facets" clipPath={`url(#${id}-ice-${index})`}>
@@ -31,10 +32,13 @@ function HeaderLogo({id}: {id: string}) {
         <path d="M-8 -30L-19 -8L-8 5L-18 28" stroke="#e6f8fa" strokeWidth="1.5" fill="none"/>
       </g>
     </g>)}
+    </g>
+    <g transform="translate(36 0) scale(.9 1)">
     <ChocolateMark outline/>
     <ChocolateMark gloss={`${id}-drop`}/>
     <g className="brand-drop-glints" fill="none" strokeLinecap="round" transform="translate(-9 0)">
       <path d="M343 172C343 176 341 178 337.5 178" stroke="#ffe5b8" strokeWidth="2"/>
+    </g>
     </g>
     <text className="brand-gallery" x="200" y="163" textAnchor="middle" fontSize="29" letterSpacing="4">ギャラリー</text>
   </svg>;
