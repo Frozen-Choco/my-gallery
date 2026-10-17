@@ -51,7 +51,7 @@ it('resumes five seconds after selection even while hover and focus remain', () 
   const banner = screen.getByRole('region', {name:'新着作品'});
   fireEvent.mouseEnter(banner); fireEvent.focus(banner);
   act(() => vi.advanceTimersByTime(4000));
-  fireEvent.click(screen.getByRole('button', {name:'作品3を表示'}));
+  fireEvent.click(screen.getByRole('button', {name:'3 / 5：作品3を表示'}));
   act(() => vi.advanceTimersByTime(4999));
   expect(centre().href).toBe(items[2].url);
   advance(1201);
@@ -89,14 +89,22 @@ it('fills missing cards by repetition, including a rotating single work', () => 
   vi.useFakeTimers(); const view = render(<FeaturedBanner items={items.slice(0,1)}/>);
   expect(cards()).toHaveLength(5);
   expect(cards().every(card => card.href === items[0].url)).toBe(true);
-  expect(document.querySelector('.banner-dots')).toBeNull();
+  const dots = () => [...document.querySelectorAll<HTMLButtonElement>('.banner-dots button')];
+  const selectedDot = () => dots().findIndex(dot => dot.getAttribute('aria-pressed') === 'true');
+  expect(dots()).toHaveLength(5);
+  expect(selectedDot()).toBe(0);
   const initial = centre();
   advance(6200);
   expect(centre()).not.toBe(initial);
   expect(centre().href).toBe(items[0].url);
+  expect(selectedDot()).toBe(1);
+  fireEvent.click(dots()[4]);
+  advance(1200);
+  expect(centre()).toBe(cards()[4]);
+  expect(selectedDot()).toBe(4);
   view.rerender(<FeaturedBanner key="two" items={items.slice(0,2)}/>);
   expect(cards().map(card => card.href)).toEqual([items[0].url,items[1].url,items[0].url,items[1].url,items[0].url]);
-  expect(document.querySelectorAll('.banner-dots button')).toHaveLength(2);
+  expect(dots()).toHaveLength(5);
 });
 
 it('brings the exact rear card forward without opening its link, including duplicated works', () => {
@@ -224,7 +232,7 @@ it('does not auto-rotate with reduced motion and renders nothing for no works', 
   act(() => vi.advanceTimersByTime(30000));
   expect(centre().href).toBe(items[0].url);
   expect(position()).toBe(0);
-  fireEvent.click(screen.getByRole('button', {name:'作品4を表示'}));
+  fireEvent.click(screen.getByRole('button', {name:'4 / 5：作品4を表示'}));
   expect(centre().href).toBe(items[3].url);
   view.rerender(<FeaturedBanner items={[]}/>);
   expect(screen.queryByRole('region', {name:'新着作品'})).toBeNull();

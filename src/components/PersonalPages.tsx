@@ -86,11 +86,6 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
   // Five physical cards remain mounted, even when several show the same work.
   // A card wrapping from the left edge to the right travels behind the others.
   const sequence = Array.from({length:5}, (_, index) => items[index % items.length]);
-  const activeItem = sequence[step];
-  function select(item: Publication) {
-    const distance = sequence.findIndex((_, offset) => sequence[(step + offset) % 5].id === item.id);
-    if (distance >= 0) selectCard((step + distance) % 5);
-  }
   function recordInteraction() {setInteraction(current => current + 1);}
   function moveTouch(touch: {clientX: number; clientY: number}) {
     const start = touchStart.current;
@@ -174,7 +169,7 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
         </a>;
       })}
     </div></div>
-    {items.length > 1 && <div className="banner-dots">{items.map(item => <button key={item.id} aria-label={`${item.title}を表示`} aria-pressed={activeItem.id === item.id} onClick={() => select(item)}/>)}</div>}
+    <div className="banner-dots" role="group" aria-label="バナーの表示位置">{sequence.map((item, index) => <button key={index} type="button" aria-label={`${index + 1} / ${sequence.length}：${item.title}を表示`} aria-pressed={step === index} onClick={() => selectCard(index)}/>)}</div>
   </section>;
 }
 
