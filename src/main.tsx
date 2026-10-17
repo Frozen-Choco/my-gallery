@@ -10,5 +10,6 @@ import './styles/models.css';
 
 import './styles/personal.css';
 import './styles/theme.css';
+import './styles/navigation.css';
 
 createRoot(document.getElementById('root')!).render(<StrictMode><App/></StrictMode>);

@@ -36,7 +36,7 @@ describe('catalog interaction after the React migration', () => {
     await user.click(screen.getByRole('button', {name:'Minimalism の見本と特徴を見る'}));
     await user.click(screen.getByRole('button', {name:'閉じる'}));
     expect(headingsAtScroll).toEqual([]);
-    await user.click(screen.getByRole('link', {name:'← デザイン'}));
+    await user.click(screen.getByRole('link', {name:'デザイン'}));
     expect(headingsAtScroll).toEqual(['デザイン']);
     headingsAtScroll.length = 0;
     history.replaceState(null, '', '/#motion');
@@ -84,10 +84,10 @@ describe('catalog interaction after the React migration', () => {
     expect(window.scrollTo).toHaveBeenCalledWith({top:0, left:0, behavior:'instant'});
     expect(location.hash).toBe('#design-all');
     expect([...document.querySelectorAll('#gallery .card-title')].slice(0,8).map(node => node.textContent)).toEqual(previewNames);
-    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(28);
+    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(24);
     expect(screen.queryByRole('group', {name:'デザインの一覧'})).toBeNull();
     for (const [name, hash, count] of [['ウェブ','#styles',16], ['ゲーム','#games',12]] as const) {
-      await user.click(screen.getByRole('link', {name:'← デザイン'}));
+      await user.click(screen.getByRole('link', {name:'デザイン'}));
       const row = within(screen.getByRole('region', {name}));
       const names = row.getAllByRole('heading', {level:3}).map(node => node.textContent);
       await user.click(row.getByRole('link', {name:'すべて見る'}));
@@ -112,10 +112,10 @@ describe('catalog interaction after the React migration', () => {
     await user.click(screen.getByRole('button', {name:'閉じる'}));
     await user.click(animationRow.getByRole('link', {name:'すべて見る'}));
     expect(location.hash).toBe('#animation-all');
-    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(25);
+    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(24);
     expect(screen.queryByRole('group', {name:'アニメーションの一覧'})).toBeNull();
     for (const [name, hash, count] of [['モーション','#motion',13], ['トランジション','#transitions',12]] as const) {
-      await user.click(screen.getByRole('link', {name:'← アニメーション'}));
+      await user.click(screen.getByRole('link', {name:'アニメーション'}));
       const row = within(screen.getByRole('region', {name}));
       const names = row.getAllByRole('heading', {level:3}).map(node => node.textContent);
       await user.click(row.getByRole('link', {name:'すべて見る'}));
@@ -126,7 +126,7 @@ describe('catalog interaction after the React migration', () => {
     history.replaceState(null, '', '/#animation-all');
     fireEvent(window, new PopStateEvent('popstate'));
     expect(screen.getByRole('heading', {level:1}).textContent).toBe('アニメーション一覧');
-    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(25);
+    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(24);
   });
   it('starts desktop navigation closed and preserves its toggle state across page navigation', async () => {
     const user = userEvent.setup(); renderApp();
@@ -237,7 +237,7 @@ describe('catalog interaction after the React migration', () => {
     expect(names()).toEqual([...descendingFiltered].reverse());
     expect((screen.getByRole('combobox', {name:'ジャンルで絞り込む'}) as HTMLSelectElement).value).toBe('楽しい・ポップ');
     await user.selectOptions(sort, 'name-desc');
-    await user.click(screen.getByRole('link', {name:'← デザイン'}));
+    await user.click(screen.getByRole('link', {name:'デザイン'}));
     await user.click(within(screen.getByRole('region', {name:'ウェブ'})).getByRole('link', {name:'すべて見る'}));
     expect((screen.getByRole('combobox', {name:'並び順'}) as HTMLSelectElement).value).toBe('name-asc');
     expect(names()).toEqual(ascending);
@@ -285,6 +285,26 @@ describe('catalog interaction after the React migration', () => {
       await user.click(screen.getByRole('button', {name:'閉じる'}));
     }
   });
+  it.each([['design-all',28], ['animation-all',25]] as const)('paginates %s after sorting and filtering the complete catalog', async (route, count) => {
+    history.replaceState(null, '', '/#' + route);
+    const user = userEvent.setup(); renderApp();
+    expect(screen.getByText(`1–24 / ${count}件`)).toBeTruthy();
+    const firstPage = [...document.querySelectorAll('#gallery .card-title')].map(node => node.textContent);
+    const bottom = within(screen.getByRole('navigation', {name:'ページ送り（下部）'}));
+    await user.click(bottom.getByRole('button', {name:'2ページ'}));
+    expect(screen.getByText(`25–${count} / ${count}件`)).toBeTruthy();
+    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(count - 24);
+    const lastPage = [...document.querySelectorAll('#gallery .card-title')].map(node => node.textContent);
+    expect(lastPage.every(name => !firstPage.includes(name))).toBe(true);
+    expect(document.activeElement).toBe(screen.getByRole('combobox', {name:'ページを選択'}));
+    await user.selectOptions(screen.getByRole('combobox', {name:'並び順'}), 'name-desc');
+    expect(screen.getByText(`1–24 / ${count}件`)).toBeTruthy();
+    expect(document.querySelector('#gallery .card-title')?.textContent).toBe(lastPage.at(-1));
+    await user.selectOptions(screen.getByRole('combobox', {name:'ページを選択'}), '2');
+    await user.type(screen.getByRole('searchbox'), firstPage[0]!);
+    expect(screen.queryByRole('navigation', {name:'ページ送り（下部）'})).toBeNull();
+    expect(document.querySelector('#gallery .card-title')?.textContent).toBe(firstPage[0]);
+  });
   it('paginates 1,000 models, searches all pages, resets filtered pages and preserves downloads', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ok:true, json:async () => fixtureModels(1000)}));
     history.replaceState(null, '', '/#models');
@@ -292,13 +312,13 @@ describe('catalog interaction after the React migration', () => {
     await screen.findByText('1–60 / 1000件');
     expect(document.querySelectorAll('.model-card').length).toBe(60);
     expect(fetch).toHaveBeenCalledTimes(1);
-    const top = within(screen.getByRole('navigation', {name:'モデルのページ（上部）'}));
-    await user.click(top.getByRole('button', {name:'次のページ'}));
+    const top = () => within(screen.getByRole('navigation', {name:'ページ送り（上部）'}));
+    await user.click(top().getByRole('button', {name:'次のページ'}));
     expect(screen.getByText('61–120 / 1000件')).toBeTruthy();
-    await user.selectOptions(top.getByRole('combobox'), '17');
+    await user.selectOptions(top().getByRole('combobox'), '17');
     expect(screen.getByText('961–1000 / 1000件')).toBeTruthy();
     expect(document.querySelectorAll('.model-card').length).toBe(40);
-    expect((top.getByRole('button', {name:'次のページ'}) as HTMLButtonElement).disabled).toBe(true);
+    expect((top().getByRole('button', {name:'次のページ'}) as HTMLButtonElement).disabled).toBe(true);
     await user.type(screen.getByRole('searchbox'), 'モデル 0999');
     expect(document.querySelectorAll('.model-card').length).toBe(1);
     expect(screen.getByRole('link', {name:'モデル 0999のGLBをダウンロード'}).getAttribute('href')).toContain('/model_0999.glb');
@@ -307,7 +327,7 @@ describe('catalog interaction after the React migration', () => {
     await user.click(download);
     expect(trackDownload).toHaveBeenLastCalledWith('model_0999', 'glb');
     await user.clear(screen.getByRole('searchbox'));
-    await user.selectOptions(top.getByRole('combobox'), '17');
+    await user.selectOptions(top().getByRole('combobox'), '17');
     await user.selectOptions(screen.getByRole('combobox', {name:'カテゴリで絞り込む'}), '家具');
     expect(screen.getByText('1–60 / 500件')).toBeTruthy();
     await user.type(screen.getByRole('searchbox'), '該当しない');

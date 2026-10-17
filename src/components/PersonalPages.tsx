@@ -3,6 +3,7 @@ import type {PersonalPage, Model} from '../types';
 import {collectionPages, exampleCatalogs, titles} from '../catalog';
 import {featuredPublications, publishedGames, youtube, type Publication, type Video} from '../catalog/publications';
 import {Icon} from './Icon';
+import {Pagination, contentPageSize} from './Pagination';
 import {Specimen} from './Specimen';
 import {ThumbnailSlideshow} from './ThumbnailSlideshow';
 import {normalizeModels} from '../catalog/models';
@@ -183,10 +184,37 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
 function YouTubeSymbol() {
   return <svg viewBox="0 0 48 34" aria-hidden="true"><rect width="48" height="34" rx="10" fill="currentColor"/><path d="m20 10 12 7-12 7Z" fill="white"/></svg>;
 }
+export function PublicationList({items, kind}: {items: Publication[]; kind: 'game' | 'video'}) {
+  const [page, setPage] = useState(1);
+  const top = useRef<HTMLDivElement>(null);
+  const moveFocus = useRef(false);
+  const pages = Math.max(1, Math.ceil(items.length / contentPageSize));
+  const current = Math.min(page, pages);
+  const start = (current - 1) * contentPageSize;
+  useEffect(() => {
+    if (!moveFocus.current) return;
+    moveFocus.current = false;
+    top.current?.scrollIntoView({block:'start'});
+    top.current?.querySelector<HTMLSelectElement>('[data-page-select]')?.focus({preventScroll:true});
+  }, [current]);
+  function changePage(next: number) {moveFocus.current = true; setPage(next);}
+  return <>
+    {items.length > 0 && <div className="results-bar publication-results" ref={top}>
+      <p aria-live="polite">{pages > 1 ? `${start + 1}–${Math.min(start + contentPageSize, items.length)} / ${items.length}件` : `${items.length}件`}</p>
+      <Pagination top page={current} pages={pages} onChange={changePage}/>
+    </div>}
+    <div className={kind === 'game' ? 'published-games' : 'video-grid'}>{items.slice(start, start + contentPageSize).map(item =>
+      <a className={kind === 'game' ? 'published-game' : 'video-card'} key={item.id} href={item.url} target="_blank" rel="noopener noreferrer" aria-label={`${item.title}を${kind === 'game' ? 'itch.io' : 'YouTube'}で見る（新しいタブ）`}>
+        <PublicationArtwork item={item}/><h2>{item.title}{kind === 'game' && <span aria-hidden="true">↗</span>}</h2>
+      </a>)}
+    </div>
+    <Pagination page={current} pages={pages} onChange={changePage}/>
+  </>;
+}
 function MediaPage({videos}: {videos: Video[]}) {
   return <>
     <a className="channel-link" href={youtube.url} target="_blank" rel="noopener noreferrer" aria-label="冷凍チョコのYouTubeチャンネル（新しいタブ）"><YouTubeSymbol/><span>{youtube.name}</span><span aria-hidden="true">↗</span></a>
-    <div className="video-grid">{videos.map(video => <a className="video-card" key={video.id} href={video.url} target="_blank" rel="noopener noreferrer"><PublicationArtwork item={video}/><h2>{video.title}</h2></a>)}</div>
+    <PublicationList items={videos} kind="video"/>
     {!videos.length && <p className="video-empty">まだ投稿動画はありません。</p>}
   </>;
 }
@@ -207,7 +235,7 @@ function PageThumbnail({id, videos, models, offset}: {id: typeof destinations[nu
 }
 export function PersonalPages({page, models = []}: {page: PersonalPage; models?: Model[]}) {
   const videos = useVideos();
-  if (page === 'works') return <div className="published-games">{publishedGames.map(game => <a key={game.id} className="published-game" href={game.url} target="_blank" rel="noopener noreferrer" aria-label={`${game.title}をitch.ioで見る（新しいタブ）`}><PublicationArtwork item={game}/><h2>{game.title}<span aria-hidden="true">↗</span></h2></a>)}</div>;
+  if (page === 'works') return <PublicationList items={publishedGames} kind="game"/>;
   if (page === 'media') return <MediaPage videos={videos}/>;
   const featured = featuredPublications(videos);
   return <div className="home-page">

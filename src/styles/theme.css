@@ -145,8 +145,6 @@
   .catalog-toolbar .filter-row { grid-column: 1; grid-row: 2; }
 }
 
-.collection-back { display: inline-block; margin: 0 0 18px; font: 600 var(--ui-size-control) var(--ui-font-body); color: var(--ui-link); text-decoration: none; }
-.collection-back:hover { text-decoration: underline; text-underline-offset: 4px; }
 .collection-overview { display: grid; gap: 32px; min-width: 0; }
 .preview-row { min-width: 0; }
 .preview-row-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }

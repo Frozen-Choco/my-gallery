@@ -2,6 +2,8 @@ import {Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useS
 import {trackDetail, trackPage} from './analytics';
 import {animatedPage, collectionAllRoutes, collectionFor, collectionPages, exampleCatalogs, matchItems, pageFromHash, titles} from './catalog';
 import {loadModelCatalog} from './catalog/models';
+import {Breadcrumbs} from './components/Breadcrumbs';
+import {Pagination, contentPageSize} from './components/Pagination';
 import {Brand} from './components/Brand';
 import {DetailDialog} from './components/DetailDialog';
 import {Icon, type IconName} from './components/Icon';
@@ -12,7 +14,7 @@ import {CollectionOverview} from './components/CollectionOverview';
 import {useLiquidSidebar} from './components/useLiquidSidebar';
 import type {ExampleItem, ExamplePage, Model, ModelCatalog, ModelStatus, Page, SitePage, Selection, SortOrder} from './types';
 
-const pageSize = 60;
+const modelPageSize = 60;
 function scrollToPageTop() {window.scrollTo({top: 0, left: 0, behavior: 'instant'});}
 type NavigationItem = {page: SitePage; icon: IconName; divider?: boolean};
 type SourcedItem = (ExampleItem | Model) & {sourcePage: Page};
@@ -41,14 +43,6 @@ function useModels(active: boolean) {
   }, [active, retry]);
   return {catalog, status, retry: () => {request.current = null; setRetry(n => n + 1);}};
 }
-function Pagination({page, pages, top = false, onChange}: {page: number; pages: number; top?: boolean; onChange: (page: number) => void}) {
-  return <nav className={`model-pagination${top ? ' model-pagination-top' : ''}${pages <= 1 ? ' hidden' : ''}`} data-model-pagination aria-label={`モデルのページ（${top ? '上部' : '下部'}）`}>
-    {pages > 1 && <><button aria-label="前のページ" disabled={page === 1} onClick={() => onChange(page - 1)}>←</button>
-      <select data-model-page aria-label="ページを選択" value={page} onChange={event => onChange(Number(event.target.value))}>
-        {Array.from({length: pages}, (_, index) => <option key={index + 1} value={index + 1}>{index + 1} / {pages}</option>)}
-      </select><button aria-label="次のページ" disabled={page === pages} onClick={() => onChange(page + 1)}>→</button></>}
-  </nav>;
-}
 export function App() {
   const [route, setPage] = useState<SitePage>(() => pageFromHash(location.hash));
   const personalPage = route === 'home' || route === 'works' || route === 'media' ? route : null;
@@ -60,7 +54,7 @@ export function App() {
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<SortOrder>('name-asc');
   const [view, setView] = useState<'grid' | 'list'>('grid');
-  const [modelPage, setModelPage] = useState(1);
+  const [listPage, setListPage] = useState(1);
   const [selection, setSelection] = useState<Selection | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(false);
@@ -87,7 +81,7 @@ export function App() {
   // Reset after the destination DOM is committed, for links, menu actions and browser history alike.
   useLayoutEffect(scrollToPageTop, [route]);
   useEffect(() => {trackPage(route, titles[route]); document.title = `${titles[route]} | 冷凍チョコ ギャラリー`;}, [route]);
-  const reset = useCallback(() => {setFilter('すべて'); setQuery(''); setModelPage(1);}, []);
+  const reset = useCallback(() => {setFilter('すべて'); setQuery(''); setListPage(1);}, []);
   const navigate = useCallback((next: SitePage) => {
     setPage(next); reset(); setSidebarOpen(false); setSelection(null);
     if (location.hash !== '#' + next) history.pushState(null, '', '#' + next);
@@ -119,14 +113,15 @@ export function App() {
     };
   }, [combined, collection, page, models.catalog]);
   const matched = useMemo(() => matchItems<SourcedItem>(catalog.items, filter, query, sort), [catalog.items, filter, query, sort]);
-  const pages = page === 'models' ? Math.max(1, Math.ceil(matched.length / pageSize)) : 1;
-  const currentPage = Math.min(modelPage, pages), start = (currentPage - 1) * pageSize;
-  const visible = page === 'models' ? matched.slice(start, start + pageSize) : matched;
-  function changeModelPage(next: number) {paginationFocus.current = true; setModelPage(next);}
+  const pageSize = page === 'models' ? modelPageSize : contentPageSize;
+  const pages = Math.max(1, Math.ceil(matched.length / pageSize));
+  const currentPage = Math.min(listPage, pages), start = (currentPage - 1) * pageSize;
+  const visible = matched.slice(start, start + pageSize);
+  function changeListPage(next: number) {paginationFocus.current = true; setListPage(next);}
   useEffect(() => {
     if (!paginationFocus.current) return;
     paginationFocus.current = false; resultsRef.current?.scrollIntoView({block: 'start'});
-    resultsRef.current?.querySelector<HTMLSelectElement>('[data-model-page]')?.focus({preventScroll: true});
+    resultsRef.current?.querySelector<HTMLSelectElement>('[data-page-select]')?.focus({preventScroll: true});
   }, [currentPage]);
   function openDetail(item: SourcedItem) {
     const page = item.sourcePage;
@@ -163,12 +158,11 @@ export function App() {
       <div ref={menu.refs.heading} className="catalog-heading"><div className="section-title"><h1 id="catalog-title">{titles[route]}</h1></div></div>
       <div ref={menu.refs.headerLogo} className="header-brand-viewport" aria-hidden={!mobile && sidebarVisible} inert={!mobile && sidebarVisible}><Brand header/></div>
     </header>
-    <div ref={menu.refs.workspace} className={`workspace${mobile && menu.present ? ' menu-obscured' : ''}${!mobile && !desktopSidebarOpen ? ' sidebar-collapsed' : ''}`}><main id="main"><section className="catalog" aria-labelledby="catalog-title">
-      {personalPage ? <PersonalPages page={personalPage} models={models.catalog.items}/> : overview ? <CollectionOverview key={overview} collection={overview} onNavigate={next => {setSort('name-asc'); navigate(next);}} paused={selection !== null} onOpen={({page:sourcePage, item}) => openDetail({...item, sourcePage})}/> : <>
-      {collection && <a className="collection-back" href={`#${collection}`} onClick={event => {if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button === 0) {event.preventDefault(); navigate(collection);}}}>← {titles[collection]}</a>}
+    <div ref={menu.refs.workspace} className={`workspace${mobile && menu.present ? ' menu-obscured' : ''}${!mobile && !desktopSidebarOpen ? ' sidebar-collapsed' : ''}`}><main id="main"><Breadcrumbs page={route} onNavigate={navigate}/><section className="catalog" aria-labelledby="catalog-title">
+      {personalPage ? <PersonalPages key={personalPage} page={personalPage} models={models.catalog.items}/> : overview ? <CollectionOverview key={overview} collection={overview} onNavigate={next => {setSort('name-asc'); navigate(next);}} paused={selection !== null} onOpen={({page:sourcePage, item}) => openDetail({...item, sourcePage})}/> : <>
       <div className="catalog-toolbar">
-      <div className="catalog-search"><label className="search-box"><Icon name="search"/><input ref={searchRef} id="search" type="search" placeholder={page === 'models' ? 'モデル名・カテゴリで検索' : isAnimated ? '効果・特徴で検索' : 'スタイル・特徴で検索'} autoComplete="off" aria-label={`${titles[collection ?? page]}・キーワードを検索`} value={query} onChange={event => {setQuery(event.target.value); setModelPage(1);}}/><kbd>/</kbd></label></div>
-      <div className="filter-row"><label id="filters" className="genre-select"><span>{page === 'models' ? 'カテゴリ' : 'ジャンル'}</span><select aria-label={page === 'models' ? 'カテゴリで絞り込む' : 'ジャンルで絞り込む'} value={filter} onChange={event => {setFilter(event.target.value); setModelPage(1);}}>
+      <div className="catalog-search"><label className="search-box"><Icon name="search"/><input ref={searchRef} id="search" type="search" placeholder={page === 'models' ? 'モデル名・カテゴリで検索' : isAnimated ? '効果・特徴で検索' : 'スタイル・特徴で検索'} autoComplete="off" aria-label={`${titles[collection ?? page]}・キーワードを検索`} value={query} onChange={event => {setQuery(event.target.value); setListPage(1);}}/><kbd>/</kbd></label></div>
+      <div className="filter-row"><label id="filters" className="genre-select"><span>{page === 'models' ? 'カテゴリ' : 'ジャンル'}</span><select aria-label={page === 'models' ? 'カテゴリで絞り込む' : 'ジャンルで絞り込む'} value={filter} onChange={event => {setFilter(event.target.value); setListPage(1);}}>
         {catalog.filters.map(value => <option key={value} value={value}>{value}</option>)}
       </select></label><button id="filter-reset" className={`text-button${!query.trim() && filter === 'すべて' ? ' hidden' : ''}`} onClick={reset}>リセット ↺</button></div>
       </div>
@@ -176,8 +170,8 @@ export function App() {
         {status === 'loading' ? 'モデルを読み込んでいます…' : status === 'fallback' ? '最新の一覧を取得できないため、保存済みの一覧を表示しています。' : status === 'error' ? 'モデルを読み込めませんでした。' : ''}
         {(status === 'fallback' || status === 'error') && <button onClick={models.retry}>再読み込み</button>}
       </p>
-      <div className="results-bar" ref={resultsRef}><p id="result-count" aria-live="polite">{page === 'models' && pages > 1 ? `${start + 1}–${Math.min(start + pageSize, matched.length)} / ${matched.length}件` : `${matched.length}件`}</p>
-        <div className="results-actions"><Pagination page={currentPage} pages={pages} top onChange={changeModelPage}/><label className="sort-label"><span className="sr-only">並び順</span><select id="sort" value={sort} onChange={event => {setSort(event.target.value as SortOrder); setModelPage(1);}}><option value="name-asc">名前（昇順）</option><option value="name-desc">名前（降順）</option></select></label>
+      <div className="results-bar" ref={resultsRef}><p id="result-count" aria-live="polite">{pages > 1 ? `${start + 1}–${Math.min(start + pageSize, matched.length)} / ${matched.length}件` : `${matched.length}件`}</p>
+        <div className="results-actions"><Pagination page={currentPage} pages={pages} top onChange={changeListPage}/><label className="sort-label"><span className="sr-only">並び順</span><select id="sort" value={sort} onChange={event => {setSort(event.target.value as SortOrder); setListPage(1);}}><option value="name-asc">名前（昇順）</option><option value="name-desc">名前（降順）</option></select></label>
           <div className="view-switch" aria-label="表示形式">{(['grid','list'] as const).map(value => <button key={value} className={`icon-button${view === value ? ' selected' : ''}`} data-view={value} aria-label={value === 'grid' ? 'グリッド表示' : 'リスト表示'} aria-pressed={view === value} onClick={() => setView(value)}><Icon name={value}/></button>)}</div>
         </div>
       </div>
@@ -188,7 +182,7 @@ export function App() {
           return <ExampleCard key={`${itemPage}:${item.id}`} page={itemPage} item={item as ExampleItem} paused={selection !== null} onOpen={() => openDetail(item)}/>;
         })}
       </div>
-      <Pagination page={currentPage} pages={pages} onChange={changeModelPage}/>
+      <Pagination page={currentPage} pages={pages} onChange={changeListPage}/>
       <div id="empty" className={`empty${empty ? '' : ' hidden'}`}><p id="empty-message">該当する見本がありません。</p><button id="empty-reset" className="primary-button" onClick={reset}>絞り込みを解除</button></div>
     </>}
     </section></main>
