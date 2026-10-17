@@ -290,3 +290,77 @@ it('settles a cancelled mouse drag and clears the held state on window blur', ()
   advance(5000);
   expect(position()).toBe(2);
 });
+
+function momentumGesture(kind: 'mouse' | 'touch') {
+  const banner = document.querySelector<HTMLDivElement>('.banner-window')!;
+  Object.defineProperty(banner, 'clientWidth', {value:360});
+  Object.assign(banner, {setPointerCapture:vi.fn(), hasPointerCapture:vi.fn(() => true), releasePointerCapture:vi.fn()});
+  return {
+    start(x: number) {
+      if (kind === 'mouse') fireEvent.pointerDown(banner, {...mouse,clientX:x});
+      else fireEvent.touchStart(banner, {touches:[{clientX:x,clientY:200}]});
+    },
+    move(x: number) {
+      if (kind === 'mouse') fireEvent.pointerMove(banner, {...mouse,clientX:x});
+      else fireEvent.touchMove(banner, {touches:[{clientX:x,clientY:200}]});
+    },
+    end(x: number) {
+      if (kind === 'mouse') fireEvent.pointerUp(banner, {...mouse,buttons:0,clientX:x});
+      else fireEvent.touchEnd(banner, {changedTouches:[{clientX:x,clientY:200}]});
+    },
+  };
+}
+
+it.each(['mouse', 'touch'] as const)('coasts after a fast %s release, then snaps, and allows catching the motion', kind => {
+  vi.useFakeTimers(); render(<FeaturedBanner items={items}/>);
+  const gesture = momentumGesture(kind);
+  gesture.start(300);
+  advance(50); gesture.move(264);
+  advance(50); gesture.move(228);
+  gesture.end(228);
+  expect(position()).toBeCloseTo(.4);
+  advance(100);
+  expect(position()).toBeGreaterThan(.65);
+  expect(position()).toBeLessThan(.8);
+  advance(1800);
+  expect(position()).toBe(1);
+  gesture.start(300);
+  advance(50); gesture.move(264);
+  advance(50); gesture.move(228);
+  gesture.end(228); advance(100);
+  gesture.start(300);
+  const caught = position();
+  advance(600);
+  expect(position()).toBe(caught);
+  gesture.end(300); advance(1800);
+  expect(position()).toBe(Math.round(caught));
+});
+
+it.each(['mouse', 'touch'] as const)('does not coast after a slow %s movement or a pause before release', kind => {
+  vi.useFakeTimers(); render(<FeaturedBanner items={items}/>);
+  const gesture = momentumGesture(kind);
+  gesture.start(300);
+  advance(1000); gesture.move(264);
+  advance(1000); gesture.move(228);
+  gesture.end(228); advance(1200);
+  expect(position()).toBe(0);
+  gesture.start(300);
+  advance(50); gesture.move(264);
+  advance(50); gesture.move(228);
+  advance(150); gesture.end(228); advance(1200);
+  expect(position()).toBe(0);
+});
+
+it.each(['mouse', 'touch'] as const)('uses the final %s direction and caps the extra travel after a hard flick', kind => {
+  vi.useFakeTimers(); render(<FeaturedBanner items={items}/>);
+  const gesture = momentumGesture(kind);
+  gesture.start(300);
+  advance(50); gesture.move(228);
+  advance(50); gesture.move(318);
+  gesture.end(318);
+  expect(position()).toBeCloseTo(-.1);
+  advance(100);
+  expect(position()).toBeLessThan(-.3);
+  advance(1800);
+  expect(position()).toBe(-1);
+});

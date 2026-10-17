@@ -39,19 +39,20 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
   const [reduced, setReduced] = useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
   const {position, rotateBy, selectCard, scrollBy, beginDrag, dragTo, endDrag} = useBannerRotation(reduced);
   const step = bannerIndex(position);
-  const finishMouse = useCallback(() => {
+  const finishMouse = useCallback((withMomentum = false) => {
     const start = mouseStart.current;
     if (!start) return;
     mouseStart.current = null;
     if (start.dragging) suppressClickUntil.current = performance.now() + 500;
     if (start.element.hasPointerCapture(start.id)) start.element.releasePointerCapture(start.id);
-    endDrag();
+    endDrag(withMomentum && start.dragging);
     setMouseHeld(false);
     setMouseDragging(false);
   }, [endDrag]);
   useEffect(() => {
-    window.addEventListener('blur', finishMouse);
-    return () => window.removeEventListener('blur', finishMouse);
+    const blur = () => finishMouse();
+    window.addEventListener('blur', blur);
+    return () => window.removeEventListener('blur', blur);
   }, [finishMouse]);
   useEffect(() => {
     const preference = matchMedia('(prefers-reduced-motion: reduce)');
@@ -101,10 +102,10 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
     }
     if (start.axis === 'horizontal') dragTo(-dx / start.stride);
   }
-  function finishTouch() {
+  function finishTouch(withMomentum = false) {
     if (touchStart.current) {
       if (touchStart.current.axis === 'horizontal') suppressClickUntil.current = performance.now() + 500;
-      endDrag();
+      endDrag(withMomentum && touchStart.current.axis === 'horizontal');
     }
     touchStart.current = null;
     setTouching(false);
@@ -136,7 +137,7 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
         const start = mouseStart.current;
         if (!start || start.id !== event.pointerId) return;
         if (start.dragging) dragTo(-(event.clientX - start.x) / start.stride);
-        finishMouse();
+        finishMouse(true);
       }}
       onPointerCancel={event => {if (mouseStart.current?.id === event.pointerId) finishMouse();}}
       onLostPointerCapture={event => {if (mouseStart.current?.id === event.pointerId) finishMouse();}}
@@ -149,10 +150,10 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
         setTouching(true);
       }}
       onTouchMove={event => {if (event.touches.length === 1) moveTouch(event.touches[0]);}}
-      onTouchCancel={finishTouch}
+      onTouchCancel={() => finishTouch()}
       onTouchEnd={event => {
         if (event.changedTouches[0]) moveTouch(event.changedTouches[0]);
-        finishTouch();
+        finishTouch(true);
         if (event.touches.length) setTouching(true);
       }}><div className="banner-track">
       {sequence.map((item, index) => {
