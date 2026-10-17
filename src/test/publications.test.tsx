@@ -1,6 +1,7 @@
 import {afterEach, expect, it, vi} from 'vitest';
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import {FeaturedBanner} from '../components/PersonalPages';
+import {bannerPose} from '../components/useBannerRotation';
 import {featuredPublications, normalizeVideos, type Publication} from '../catalog/publications';
 
 const items: Publication[] = [1,2,3,4,5].map(n => ({id:`game-${n}`, title:`作品${n}`, url:`https://example.com/${n}`, kind:'game'}));
@@ -23,6 +24,8 @@ it('validates external records and constructs URLs from video IDs only', () => {
 
 const cards = () => [...document.querySelectorAll<HTMLAnchorElement>('.banner-slide')];
 const centre = () => document.querySelector<HTMLAnchorElement>('.banner-slide[data-slot="0"]')!;
+const position = () => Number(screen.getByRole('region', {name:'新着作品'}).dataset.position);
+const advance = (ms: number) => act(() => vi.advanceTimersByTime(ms));
 
 it('keeps five cards mounted and cycles clockwise through all positions without a rewind', () => {
   vi.useFakeTimers(); render(<FeaturedBanner items={items}/>);
@@ -31,7 +34,7 @@ it('keeps five cards mounted and cycles clockwise through all positions without 
   expect(original.map(card => Number(card.dataset.slot))).toEqual([0,1,2,-2,-1]);
   expect(centre().href).toBe(items[0].url);
   for (let step=1;step<=5;step++) {
-    act(() => vi.advanceTimersByTime(5000));
+    advance(step === 1 ? 6200 : 5000);
     expect(centre().href).toBe(items[step % 5].url);
     expect(cards()).toEqual(original);
     expect(cards().map(card => Number(card.dataset.slot)).sort()).toEqual([-1,-2,0,1,2].sort());
@@ -51,7 +54,7 @@ it('resumes five seconds after selection even while hover and focus remain', () 
   fireEvent.click(screen.getByRole('button', {name:'作品3を表示'}));
   act(() => vi.advanceTimersByTime(4999));
   expect(centre().href).toBe(items[2].url);
-  act(() => vi.advanceTimersByTime(1));
+  advance(1201);
   expect(centre().href).toBe(items[3].url);
   act(() => vi.advanceTimersByTime(5000));
   expect(centre().href).toBe(items[4].url);
@@ -61,12 +64,11 @@ it('waits five seconds from the last wheel input, including input too small to t
   vi.useFakeTimers(); render(<FeaturedBanner items={items}/>);
   const window = document.querySelector('.banner-window')!;
   fireEvent.wheel(window, {deltaY:100});
-  expect(centre().href).toBe(items[1].url);
   act(() => vi.advanceTimersByTime(4500));
   fireEvent.wheel(window, {deltaY:1});
   act(() => vi.advanceTimersByTime(4999));
   expect(centre().href).toBe(items[1].url);
-  act(() => vi.advanceTimersByTime(1));
+  advance(1201);
   expect(centre().href).toBe(items[2].url);
 });
 
@@ -79,7 +81,7 @@ it('waits until touch ends before resuming automatic rotation', () => {
   fireEvent.touchEnd(window, {changedTouches:[{clientX:100,clientY:100}]});
   act(() => vi.advanceTimersByTime(4999));
   expect(centre().href).toBe(items[1].url);
-  act(() => vi.advanceTimersByTime(1));
+  advance(1201);
   expect(centre().href).toBe(items[2].url);
 });
 
@@ -89,7 +91,7 @@ it('fills missing cards by repetition, including a rotating single work', () => 
   expect(cards().every(card => card.href === items[0].url)).toBe(true);
   expect(document.querySelector('.banner-dots')).toBeNull();
   const initial = centre();
-  act(() => vi.advanceTimersByTime(5000));
+  advance(6200);
   expect(centre()).not.toBe(initial);
   expect(centre().href).toBe(items[0].url);
   view.rerender(<FeaturedBanner key="two" items={items.slice(0,2)}/>);
@@ -98,51 +100,80 @@ it('fills missing cards by repetition, including a rotating single work', () => 
 });
 
 it('brings the exact rear card forward without opening its link, including duplicated works', () => {
-  render(<FeaturedBanner items={items.slice(0,1)}/>);
+  vi.useFakeTimers(); render(<FeaturedBanner items={items.slice(0,1)}/>);
   const rear = cards()[2];
   expect(fireEvent.click(rear)).toBe(false);
+  advance(1200);
   expect(centre()).toBe(rear);
   expect(fireEvent.click(rear)).toBe(true);
   const other = cards()[4];
   fireEvent.keyDown(other, {key:' '});
+  advance(1200);
   expect(centre()).toBe(other);
 });
 
-it('responds to rapid wheel turns and immediate reversals while coalescing event bursts', () => {
+it('tracks fractional wheel input continuously, then snaps only after input stops', () => {
   vi.useFakeTimers(); render(<FeaturedBanner items={items}/>);
   const window = document.querySelector('.banner-window')!;
-  expect(fireEvent.wheel(window, {deltaY:25})).toBe(false);
-  expect(centre().href).toBe(items[0].url);
-  fireEvent.wheel(window, {deltaY:25});
-  expect(centre().href).toBe(items[1].url);
-  fireEvent.wheel(window, {deltaY:200});
-  expect(centre().href).toBe(items[1].url);
-  expect(screen.getByRole('region', {name:'新着作品'}).dataset.wheelMotion).toBe('true');
-  act(() => vi.advanceTimersByTime(160));
-  fireEvent.wheel(window, {deltaY:100});
-  expect(centre().href).toBe(items[2].url);
-  // Reversing the wheel does not wait for the previous motion to finish.
-  fireEvent.wheel(window, {deltaX:-100});
-  expect(centre().href).toBe(items[1].url);
+  let previous = 0;
+  for (let input = 0; input < 15; input++) {
+    expect(fireEvent.wheel(window, {deltaY:36})).toBe(false);
+    advance(80);
+    expect(position()).toBeGreaterThan(previous);
+    expect(Math.abs(position() - Math.round(position()))).toBeGreaterThan(.01);
+    previous = position();
+  }
+  expect(position()).toBeGreaterThan(2.8);
+  expect(position()).toBeLessThan(3);
+  advance(1200);
+  expect(position()).toBe(3);
+  fireEvent.wheel(window, {deltaX:-120});
+  advance(80);
+  expect(position()).toBeLessThan(3);
+  advance(1200);
+  expect(position()).toBe(2);
   expect(fireEvent.wheel(window, {deltaY:100,ctrlKey:true})).toBe(true);
-  expect(centre().href).toBe(items[1].url);
-  act(() => vi.advanceTimersByTime(5000));
-  expect(centre().href).toBe(items[2].url);
-  expect(screen.getByRole('region', {name:'新着作品'}).dataset.wheelMotion).toBeUndefined();
+  advance(100);
+  expect(position()).toBe(2);
+});
+
+it('snaps to the nearest card in both directions, including across the loop boundary', () => {
+  vi.useFakeTimers(); render(<FeaturedBanner items={items}/>);
+  const window = document.querySelector('.banner-window')!;
+  fireEvent.wheel(window, {deltaY:60}); advance(1200);
+  expect(position()).toBe(0);
+  fireEvent.wheel(window, {deltaY:-120}); advance(1200);
+  expect(position()).toBe(-1);
+  expect(centre().href).toBe(items[4].url);
+  fireEvent.wheel(window, {deltaY:240}); advance(1200);
+  expect(position()).toBe(0);
+  expect(centre().href).toBe(items[0].url);
+});
+
+it('keeps the full orbit continuous at the wrap and behind the other cards', () => {
+  for (const boundary of [0, 1, 2, 2.5, 3, 4, 5]) {
+    const before = bannerPose(boundary - .00001);
+    const after = bannerPose(boundary + .00001);
+    before.forEach((value, axis) => expect(Math.abs(value - after[axis])).toBeLessThan(.01));
+  }
+  expect(bannerPose(2.5)[1]).toBeLessThan(-72);
+  expect(bannerPose(0)).toEqual(bannerPose(5));
 });
 
 it('swipes horizontally without following a link and leaves vertical touch scrolling alone', () => {
-  render(<FeaturedBanner items={items}/>);
+  vi.useFakeTimers(); render(<FeaturedBanner items={items}/>);
   const window = document.querySelector('.banner-window')!;
   fireEvent.touchStart(window, {touches:[{clientX:200,clientY:100}]});
   fireEvent.touchEnd(window, {changedTouches:[{clientX:100,clientY:105}]});
-  expect(centre().href).toBe(items[1].url);
   expect(fireEvent.click(centre())).toBe(false);
+  advance(1200);
+  expect(centre().href).toBe(items[1].url);
   fireEvent.touchStart(window, {touches:[{clientX:100,clientY:100}]});
   fireEvent.touchEnd(window, {changedTouches:[{clientX:150,clientY:200}]});
   expect(centre().href).toBe(items[1].url);
   fireEvent.touchStart(window, {touches:[{clientX:100,clientY:100}]});
   fireEvent.touchEnd(window, {changedTouches:[{clientX:200,clientY:100}]});
+  advance(1200);
   expect(centre().href).toBe(items[0].url);
 });
 
@@ -152,7 +183,7 @@ it('does not auto-rotate with reduced motion and renders nothing for no works', 
   const view = render(<FeaturedBanner items={items}/>);
   act(() => vi.advanceTimersByTime(30000));
   expect(centre().href).toBe(items[0].url);
-  expect(cards().every(card => card.style.transition === 'none')).toBe(true);
+  expect(position()).toBe(0);
   fireEvent.click(screen.getByRole('button', {name:'作品4を表示'}));
   expect(centre().href).toBe(items[3].url);
   view.rerender(<FeaturedBanner items={[]}/>);

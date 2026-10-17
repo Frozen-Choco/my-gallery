@@ -8,6 +8,7 @@ import {ThumbnailSlideshow} from './ThumbnailSlideshow';
 import {normalizeModels} from '../catalog/models';
 import savedModelCatalog from '../../public/models-catalog.json';
 import {useVideos} from './useVideos';
+import {bannerIndex, bannerPose, useBannerRotation} from './useBannerRotation';
 function GameArtwork() {
   return <div className="game-artwork" aria-hidden="true">
     <svg className="cradle-orbits" viewBox="0 0 640 320" fill="none">
@@ -26,15 +27,15 @@ function PublicationArtwork({item}: {item: Publication}) {
 }
 
 export function FeaturedBanner({items}: {items: Publication[]}) {
-  const [step, setStep] = useState(0);
   const [interaction, setInteraction] = useState(0);
-  const [wheelMotion, setWheelMotion] = useState(false);
   const [touching, setTouching] = useState(false);
   const windowRef = useRef<HTMLDivElement>(null);
   const touchStart = useRef<{x: number; y: number} | null>(null);
   const suppressClickUntil = useRef(0);
   const [hidden, setHidden] = useState(document.hidden);
   const [reduced, setReduced] = useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const {position, rotateBy, selectCard, scrollBy} = useBannerRotation(reduced);
+  const step = bannerIndex(position);
   useEffect(() => {
     const preference = matchMedia('(prefers-reduced-motion: reduce)');
     const change = () => setReduced(preference.matches);
@@ -45,39 +46,23 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
   useEffect(() => {
     if (!items.length || touching || hidden || reduced) return;
     // Restart the full reading interval after the last input, even if hover/focus remains.
-    const timer = setTimeout(() => {setWheelMotion(false); setStep(current => (current + 1) % 5);}, 5000);
-    return () => clearTimeout(timer);
-  }, [items.length, touching, hidden, reduced, step, interaction]);
+    const timer = setInterval(() => rotateBy(1), 5000);
+    return () => clearInterval(timer);
+  }, [items.length, touching, hidden, reduced, interaction, rotateBy]);
   useEffect(() => {
     const window = windowRef.current;
     if (!window) return;
-    let accumulated = 0;
-    let lastEvent = 0;
-    let lastTurn = -Infinity;
-    let lastDirection = 0;
     const wheel = (event: WheelEvent) => {
       if (event.ctrlKey) return; // Keep trackpad pinch zoom available.
       const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
       if (!delta) return;
       event.preventDefault();
       setInteraction(current => current + 1);
-      const now = performance.now();
-      if (now - lastEvent > 180 || Math.sign(delta) !== Math.sign(accumulated)) accumulated = 0;
-      lastEvent = now;
-      // Allow quick repeated turns, but coalesce a wheel burst; reversing stays responsive.
-      if (now - lastTurn < 160 && Math.sign(delta) === lastDirection) return;
-      accumulated += delta * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.clientHeight : 1);
-      if (Math.abs(accumulated) < 40) return;
-      const direction = Math.sign(accumulated);
-      setWheelMotion(true);
-      setStep(current => (current + direction + 5) % 5);
-      accumulated = 0;
-      lastTurn = now;
-      lastDirection = direction;
+      scrollBy(delta * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.clientHeight : 1));
     };
     window.addEventListener('wheel', wheel, {passive:false});
     return () => window.removeEventListener('wheel', wheel);
-  }, [items.length]);
+  }, [items.length, scrollBy]);
   if (!items.length) return null;
   // Five physical cards remain mounted, even when several show the same work.
   // A card wrapping from the left edge to the right travels behind the others.
@@ -85,15 +70,14 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
   const activeItem = sequence[step];
   function select(item: Publication) {
     const distance = sequence.findIndex((_, offset) => sequence[(step + offset) % 5].id === item.id);
-    if (distance >= 0) setStep(current => (current + distance) % 5);
+    if (distance >= 0) selectCard((step + distance) % 5);
   }
-  function recordInteraction() {setWheelMotion(false); setInteraction(current => current + 1);}
-  return <section className="featured-banner" data-wheel-motion={wheelMotion || undefined} aria-label="新着作品" aria-roledescription="カルーセル"
+  function recordInteraction() {setInteraction(current => current + 1);}
+  return <section className="featured-banner" data-position={position} aria-label="新着作品" aria-roledescription="カルーセル"
     onMouseEnter={recordInteraction} onFocusCapture={recordInteraction}
     onClickCapture={recordInteraction} onKeyDownCapture={recordInteraction}>
     <div className="banner-window" ref={windowRef}
       onTouchStart={event => {
-        setWheelMotion(false);
         const touch = event.touches.length === 1 ? event.touches[0] : null;
         touchStart.current = touch ? {x:touch.clientX, y:touch.clientY} : null;
         setTouching(!!touch);
@@ -109,23 +93,22 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
         const dy = end.clientY - start.y;
         if (Math.abs(dx) < 40 || Math.abs(dx) <= Math.abs(dy)) return;
         suppressClickUntil.current = performance.now() + 500;
-        setStep(current => (current + (dx < 0 ? 1 : -1) + 5) % 5);
+        rotateBy(dx < 0 ? 1 : -1);
       }}><div className="banner-track">
       {sequence.map((item, index) => {
         const slot = (index - step + 7) % 5 - 2;
-        const depth = Math.abs(slot);
-        const x = depth === 0 ? 0 : Math.sign(slot) * (depth === 1 ? 31 : 56);
-        const z = depth === 0 ? 0 : depth === 1 ? -38 : -72;
+        const [x, z, light] = bannerPose(index - position);
         const active = slot === 0;
-        const style = {'--banner-x':`${x}cqw`, '--banner-depth':`${z}cqw`, '--banner-light':depth === 0 ? 1 : depth === 1 ? .68 : .42, zIndex:3 - depth, transition:reduced ? 'none' : undefined} as CSSProperties;
+        const aligned = Math.abs(position - Math.round(position)) < .01;
+        const style = {'--banner-x':`${x}cqw`, '--banner-depth':`${z}cqw`, '--banner-light':light, zIndex:Math.round(1000 + z * 10)} as CSSProperties;
         return <a key={`${index}-${item.id}`} className="banner-slide" data-slot={slot} style={style} href={item.url} target="_blank" rel="noopener noreferrer"
           role={active ? undefined : 'button'} aria-label={active ? `${item.title}（新しいタブ）` : `${item.title}を中央に表示`}
           draggable={false}
           onClick={event => {
             if (performance.now() < suppressClickUntil.current) {event.preventDefault(); return;}
-            if (!active) {event.preventDefault(); setStep(index);}
+            if (!active || !aligned) {event.preventDefault(); selectCard(index);}
           }}
-          onKeyDown={event => {if (!active && event.key === ' ') {event.preventDefault(); setStep(index);}}}>
+          onKeyDown={event => {if (!active && event.key === ' ') {event.preventDefault(); selectCard(index);}}}>
           <PublicationArtwork item={item}/>{item.kind === 'video' && <span className="banner-title">{item.title}</span>}
         </a>;
       })}
