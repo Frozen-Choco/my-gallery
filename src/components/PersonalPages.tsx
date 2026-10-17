@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useState, type CSSProperties} from 'react';
 import type {PersonalPage, Model} from '../types';
 import {collectionPages, exampleCatalogs, titles} from '../catalog';
 import {featuredPublications, publishedGames, youtube, type Publication, type Video} from '../catalog/publications';
@@ -26,7 +26,7 @@ function PublicationArtwork({item}: {item: Publication}) {
 }
 
 export function FeaturedBanner({items}: {items: Publication[]}) {
-  const [slide, setSlide] = useState({position:1, animate:true});
+  const [step, setStep] = useState(0);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const paused = hovered || focused;
@@ -40,32 +40,36 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
     return () => {preference.removeEventListener('change', change); document.removeEventListener('visibilitychange', visibility);};
   }, []);
   useEffect(() => {
-    if (items.length < 2 || paused || hidden || reduced) return;
-    const timer = setInterval(() => setSlide(current => ({position:current.position + 1, animate:true})), 5000);
+    if (!items.length || paused || hidden || reduced) return;
+    const timer = setInterval(() => setStep(current => (current + 1) % 5), 5000);
     return () => clearInterval(timer);
   }, [items.length, paused, hidden, reduced]);
-  useEffect(() => {
-    if (items.length < 2 || slide.position !== items.length + 1) return;
-    const timer = setTimeout(() => setSlide({position:1, animate:false}), reduced ? 0 : 700);
-    return () => clearTimeout(timer);
-  }, [slide.position, items.length, reduced]);
   if (!items.length) return null;
-  const multiple = items.length > 1;
-  const index = multiple ? (slide.position - 1 + items.length) % items.length : 0;
-  const sequence = multiple ? [items[items.length-1], ...items, items[0]] : items;
+  // Five physical cards remain mounted, even when several show the same work.
+  // A card wrapping from the left edge to the right travels behind the others.
+  const sequence = Array.from({length:5}, (_, index) => items[index % items.length]);
+  const activeItem = sequence[step];
+  function select(item: Publication) {
+    const distance = sequence.findIndex((_, offset) => sequence[(step + offset) % 5].id === item.id);
+    if (distance >= 0) setStep(current => (current + distance) % 5);
+  }
   return <section className="featured-banner" aria-label="新着作品" aria-roledescription="カルーセル"
     onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
     onFocusCapture={() => setFocused(true)} onBlurCapture={event => {if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false);}}>
-    <div className="banner-window"><div className="banner-track" style={{transform:`translateX(-${multiple ? slide.position * 100 : 0}%)`, transition:slide.animate && !reduced ? undefined : 'none'}}
-      onTransitionEnd={event => {if (event.target === event.currentTarget && slide.position === items.length + 1) setSlide({position:1, animate:false});}}>
-      {sequence.map((item, position) => {
-        const active = multiple ? position === slide.position : true;
-        return <a key={`${position}-${item.id}`} className="banner-slide" href={item.url} target="_blank" rel="noopener noreferrer" tabIndex={active ? 0 : -1} aria-hidden={!active} aria-label={`${item.title}（新しいタブ）`}>
+    <div className="banner-window"><div className="banner-track">
+      {sequence.map((item, index) => {
+        const slot = (index - step + 7) % 5 - 2;
+        const depth = Math.abs(slot);
+        const x = depth === 0 ? 0 : Math.sign(slot) * (depth === 1 ? 24 : 42);
+        const z = depth === 0 ? 0 : depth === 1 ? -14 : -32;
+        const active = slot === 0;
+        const style = {'--banner-x':`${x}cqw`, '--banner-depth':`${z}cqw`, '--banner-light':depth === 0 ? 1 : depth === 1 ? .9 : .8, transition:reduced ? 'none' : undefined} as CSSProperties;
+        return <a key={`${index}-${item.id}`} className="banner-slide" data-slot={slot} style={style} href={item.url} target="_blank" rel="noopener noreferrer" tabIndex={active ? 0 : -1} aria-hidden={!active} aria-label={`${item.title}（新しいタブ）`}>
           <PublicationArtwork item={item}/>{item.kind === 'video' && <span className="banner-title">{item.title}</span>}
         </a>;
       })}
     </div></div>
-    {multiple && <div className="banner-dots">{items.map((item, position) => <button key={item.id} aria-label={`${item.title}を表示`} aria-pressed={index === position} onClick={() => setSlide({position:position+1, animate:true})}/>)}</div>}
+    {items.length > 1 && <div className="banner-dots">{items.map(item => <button key={item.id} aria-label={`${item.title}を表示`} aria-pressed={activeItem.id === item.id} onClick={() => select(item)}/>)}</div>}
   </section>;
 }
 
