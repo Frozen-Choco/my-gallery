@@ -62,8 +62,11 @@ export function App() {
   const [mobile, setMobile] = useState(() => window.matchMedia('(max-width: 760px)').matches);
   const sidebarVisible = mobile ? sidebarOpen : desktopSidebarOpen;
   const menu = useLiquidSidebar(sidebarVisible, mobile, route);
-  const openSidebarFromSwipe = useCallback(() => setSidebarOpen(true), []);
-  useSidebarSwipe(mobile && !sidebarVisible && selection === null, openSidebarFromSwipe);
+  const settleSidebarSwipe = useCallback((open: boolean) => {
+    menu.settle(open);
+    setSidebarOpen(open);
+  }, [menu.settle]);
+  useSidebarSwipe(mobile && selection === null, sidebarOpen, menu.seek, settleSidebarSwipe);
   function changeSidebar(open: boolean) {
     menu.refs.toggle.current?.focus({preventScroll:true});
     if (mobile) setSidebarOpen(open); else setDesktopSidebarOpen(open);

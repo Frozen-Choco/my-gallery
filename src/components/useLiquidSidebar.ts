@@ -1,4 +1,4 @@
-import {createRef, useLayoutEffect, useRef, useState} from 'react';
+import {createRef, useCallback, useLayoutEffect, useRef, useState} from 'react';
 
 const smooth = (value: number) => value * value * (3 - 2 * value);
 type Fragment = {node: HTMLElement; x: number; y: number; width: number};
@@ -12,6 +12,9 @@ export function useLiquidSidebar(open: boolean, mobile: boolean, route: string) 
     headerLogo: createRef<HTMLDivElement>(), backdrop: createRef<HTMLButtonElement>(),
   }));
   const progress = useRef(0);
+  const controller = useRef<{seek: (value: number) => void; settle: (open: boolean) => void} | null>(null);
+  const seek = useCallback((value: number) => controller.current?.seek(value), []);
+  const settle = useCallback((nextOpen: boolean) => controller.current?.settle(nextOpen), []);
   const [present, setPresent] = useState(open);
   const [animating, setAnimating] = useState(false);
 
@@ -119,11 +122,12 @@ export function useLiquidSidebar(open: boolean, mobile: boolean, route: string) 
     let disposed = false;
     void document.fonts?.ready.then(() => {if (!disposed) refresh();});
 
-    const from = progress.current, to = open ? 1 : 0;
-    const duration = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 520 * Math.abs(to - from);
-    const finish = () => {paint(to); setPresent(open); setAnimating(false);};
-    if (!duration) finish();
-    else {
+    function animate(nextOpen: boolean) {
+      cancelAnimationFrame(frame);
+      const from = progress.current, to = nextOpen ? 1 : 0;
+      const duration = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 520 * Math.abs(to - from);
+      const finish = () => {paint(to); setPresent(nextOpen); setAnimating(false);};
+      if (!duration) {finish(); return;}
       setPresent(true); setAnimating(true);
       const start = performance.now();
       function tick(now: number) {
@@ -134,15 +138,27 @@ export function useLiquidSidebar(open: boolean, mobile: boolean, route: string) 
       }
       frame = requestAnimationFrame(tick);
     }
+    controller.current = {
+      seek(value) {
+        cancelAnimationFrame(frame);
+        setPresent(true); setAnimating(true);
+        // Keep the latest finger position even if release precedes the next frame.
+        progress.current = Math.max(0, Math.min(1, value));
+        frame = requestAnimationFrame(() => paint(progress.current));
+      },
+      settle: animate,
+    };
+    animate(open);
     // Keep keyboard focus on the persistent toggle when a mobile nav item
     // closes the menu. No focus stealing on ordinary desktop navigation.
     if (!open && content.contains(document.activeElement)) toggle.focus({preventScroll:true});
     return () => {
       disposed = true;
+      controller.current = null;
       cancelAnimationFrame(frame);
       observer.disconnect();
       content.removeEventListener('scroll', refresh);
     };
   }, [open, mobile, route, refs]);
-  return {refs, present, animating};
+  return {refs, present, animating, seek, settle};
 }

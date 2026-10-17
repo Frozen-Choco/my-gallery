@@ -3,8 +3,10 @@ import {act, render} from '@testing-library/react';
 import {beforeEach, expect, it, vi} from 'vitest';
 import {useLiquidSidebar} from '../components/useLiquidSidebar';
 
+let drag: (p: number) => void, settle: (open: boolean) => void;
 function Sidebar({open = false, mobile = false, route = 'home'}) {
-  const {refs, present, animating} = useLiquidSidebar(open, mobile, route);
+  const {refs, present, animating, seek, settle: finish} = useLiquidSidebar(open, mobile, route);
+  drag = seek; settle = finish;
   return <><aside ref={refs.panel} data-moving={animating}>
     <div ref={refs.reveal}><div ref={refs.content}><span className="sidebar-flow">ホーム</span></div></div>
     <button ref={refs.toggle}>menu</button>
@@ -61,5 +63,23 @@ it('completes immediately for reduced motion, with no scheduled animation', () =
   const view = render(<Sidebar/>);
   view.rerender(<Sidebar open/>);
   expect(view.getByTestId('workspace').style.marginLeft).toBe('218px');
+  expect(callbacks.size).toBe(0);
+});
+
+it('scrubs the actual silhouette and contents and settles back without changing the open prop', () => {
+  vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(120);
+  vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(28);
+  const view = render(<Sidebar mobile/>);
+  const reveal = view.container.querySelector('aside > div') as HTMLElement;
+  const text = view.container.querySelector('.sidebar-flow') as HTMLElement;
+  act(() => drag(.4)); advance(16);
+  const midway = reveal.style.clipPath, textMidway = text.style.transform;
+  expect(reveal.style.visibility).toBe('visible');
+  act(() => drag(.8)); advance(32);
+  expect(reveal.style.clipPath).not.toBe(midway);
+  expect(text.style.transform).not.toBe(textMidway);
+  expect(view.getByTestId('workspace').style.marginLeft).toBe('0px');
+  act(() => settle(false)); advance(600);
+  expect(reveal.style.visibility).toBe('hidden');
   expect(callbacks.size).toBe(0);
 });

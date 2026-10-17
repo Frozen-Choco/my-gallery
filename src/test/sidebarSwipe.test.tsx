@@ -1,9 +1,12 @@
+import {useCallback} from 'react';
 import {fireEvent, render} from '@testing-library/react';
 import {expect, it, vi} from 'vitest';
 import {useSidebarSwipe} from '../components/useSidebarSwipe';
 
+const noop = () => {};
 function Surface({enabled = true, onOpen}: {enabled?: boolean; onOpen: () => void}) {
-  useSidebarSwipe(enabled, onOpen);
+  const settle = useCallback((open: boolean) => {if (open) onOpen();}, [onOpen]);
+  useSidebarSwipe(enabled, false, noop, settle);
   return <main id="main"><a href="#works">ゲーム</a><button>ボタン</button><input/>
     <div className="banner-window"/><div className="preview-rail"/><p>説明文</p></main>;
 }
@@ -48,4 +51,41 @@ it('cancels multi-touch and interrupted gestures and removes disabled listeners'
   }
   swipe(main);
   expect(onOpen).not.toHaveBeenCalled();
+});
+
+function Draggable({open = false, onProgress, onSettle}: {open?: boolean; onProgress: (p: number) => void; onSettle: (open: boolean) => void}) {
+  useSidebarSwipe(true, open, onProgress, onSettle);
+  return <><main id="main"/><aside className="sidebar"><button>ゲーム</button></aside><button className="sidebar-backdrop"/></>;
+}
+it('tracks finger distance in both directions before release, including reversal', () => {
+  const progress = vi.fn(), settle = vi.fn();
+  const view = render(<Draggable onProgress={progress} onSettle={settle}/>);
+  const main = view.container.querySelector('main')!;
+  fireEvent.touchStart(main, {touches:[touch(40,300)]});
+  fireEvent.touchMove(main, {touches:[touch(100,300)]});
+  expect(progress).toHaveBeenLastCalledWith(60 / 218);
+  expect(settle).not.toHaveBeenCalled();
+  fireEvent.touchMove(main, {touches:[touch(160,300)]});
+  expect(progress).toHaveBeenLastCalledWith(120 / 218);
+  fireEvent.touchMove(main, {touches:[touch(50,300)]});
+  expect(progress).toHaveBeenLastCalledWith(10 / 218);
+  fireEvent.touchEnd(main, {touches:[], changedTouches:[touch(50,300)]});
+  expect(settle).toHaveBeenLastCalledWith(false);
+  view.rerender(<Draggable open onProgress={progress} onSettle={settle}/>);
+  const button = view.container.querySelector('aside button')!;
+  fireEvent.touchStart(button, {touches:[touch(180,300)]});
+  fireEvent.touchMove(button, {touches:[touch(80,300)]});
+  expect(progress).toHaveBeenLastCalledWith(1 - 100 / 218);
+  fireEvent.touchEnd(button, {touches:[], changedTouches:[touch(80,300)]});
+  expect(settle).toHaveBeenLastCalledWith(false);
+  expect(fireEvent.click(button, {detail:1})).toBe(false);
+});
+it('closes from a backdrop swipe, but preserves vertical menu scrolling', () => {
+  const progress = vi.fn(), settle = vi.fn();
+  const view = render(<Draggable open onProgress={progress} onSettle={settle}/>);
+  swipe(view.container.querySelector('aside button')!, -10, -100);
+  expect(progress).not.toHaveBeenCalled();
+  expect(settle).not.toHaveBeenCalled();
+  swipe(view.container.querySelector('.sidebar-backdrop')!, -100);
+  expect(settle).toHaveBeenLastCalledWith(false);
 });

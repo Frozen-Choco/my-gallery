@@ -362,7 +362,7 @@ describe('catalog interaction after the React migration', () => {
   });
 });
 
-it('opens the mobile sidebar from an empty-space swipe and still closes from the backdrop', () => {
+it('tracks mobile swipes to open and close while retaining backdrop dismissal', () => {
   vi.stubGlobal('matchMedia', vi.fn((query: string) => ({matches:query === '(max-width: 760px)' || query === '(prefers-reduced-motion: reduce)',media:query,addEventListener:vi.fn(),removeEventListener:vi.fn()})));
   history.replaceState(null, '', '/#home');
   renderApp();
@@ -370,8 +370,17 @@ it('opens the mobile sidebar from an empty-space swipe and still closes from the
   const point = (x: number) => ({identifier:1, clientX:x, clientY:300});
   fireEvent.touchStart(main, {touches:[point(60)]});
   fireEvent.touchMove(main, {touches:[point(170)]});
+  expect(document.querySelector('.sidebar')?.getAttribute('data-animating')).toBe('true');
+  expect(screen.getByRole('button', {name:'メニューを開く'}).getAttribute('aria-expanded')).toBe('false');
   fireEvent.touchEnd(main, {touches:[], changedTouches:[point(170)]});
   expect(screen.getByRole('button', {name:'メニューを閉じる'}).getAttribute('aria-expanded')).toBe('true');
+  const panel = document.querySelector('.sidebar-content')!;
+  fireEvent.touchStart(panel, {touches:[point(180)]});
+  fireEvent.touchMove(panel, {touches:[point(70)]});
+  expect(document.querySelector('.sidebar')?.getAttribute('data-animating')).toBe('true');
+  fireEvent.touchEnd(panel, {touches:[], changedTouches:[point(70)]});
+  expect(screen.getByRole('button', {name:'メニューを開く'}).getAttribute('aria-expanded')).toBe('false');
+  fireEvent.click(screen.getByRole('button', {name:'メニューを開く'}));
   fireEvent.click(screen.getByRole('button', {name:'メニューの外側を押して閉じる'}));
   expect(screen.getByRole('button', {name:'メニューを開く'}).getAttribute('aria-expanded')).toBe('false');
 });
