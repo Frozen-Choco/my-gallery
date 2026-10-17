@@ -10,7 +10,20 @@ import {normalizeModels} from '../catalog/models';
 import savedModelCatalog from '../../public/models-catalog.json';
 import {useVideos} from './useVideos';
 import {bannerIndex, bannerPose, useBannerRotation} from './useBannerRotation';
-function GameArtwork() {
+function GameArtwork({item}: {item: Publication}) {
+  if (item.id === 'tomori-labyrinth') return <div className="game-artwork tomori-artwork" aria-hidden="true">
+    <svg className="tomori-labyrinth" viewBox="0 0 640 360" fill="none">
+      <g stroke="#81795e" strokeWidth="2" opacity=".35">
+        <path d="M340 28H604V328H340V264H374V302H576V54H368V118H398V84H548V274H404V240M428 112H520V246H460V210M340 148H398V202H368V232H340M488 140V182"/>
+      </g>
+      <g stroke="#dfbd78" strokeWidth="3" strokeLinejoin="round">
+        <path d="M437 140V126C437 112 457 112 457 126V140M423 150L437 140H457L471 150ZM426 156H468L464 220H430ZM423 228H471"/>
+        <path d="M446 173C446 185 436 187 436 198C436 212 458 212 458 198C458 190 451 184 446 173Z" fill="#f6d797" stroke="none"/>
+        <path d="M410 185H398M484 185H496M415 161L406 153M479 161L488 153" opacity=".6"/>
+      </g>
+    </svg>
+    <span className="game-artwork-title">灯守と<br/>常夜の迷宮</span>
+  </div>;
   return <div className="game-artwork" aria-hidden="true">
     <svg className="cradle-orbits" viewBox="0 0 640 320" fill="none">
       <ellipse cx="390" cy="170" rx="210" ry="84" transform="rotate(-25 390 170)"/>
@@ -19,12 +32,12 @@ function GameArtwork() {
       <path className="cradle-star" d="m385 149 5 15 15 6-15 5-5 16-5-16-15-5 15-6Z"/>
       <path d="M72 59v10m-5-5h10M565 245v12m-6-6h12M167 256v8m-4-4h8"/>
     </svg>
-    <span className="game-artwork-title">星屑の<br/>ゆりかご</span>
+    <span className="game-artwork-title">{item.id === 'stardust-cradle' ? <>星屑の<br/>ゆりかご</> : item.title}</span>
   </div>;
 }
 
 function PublicationArtwork({item}: {item: Publication}) {
-  return item.thumbnail ? <img className="publication-image" src={item.thumbnail} alt="" loading="lazy"/> : <GameArtwork/>;
+  return item.thumbnail ? <img className="publication-image" src={item.thumbnail} alt="" loading="lazy"/> : <GameArtwork item={item}/>;
 }
 
 export function FeaturedBanner({items}: {items: Publication[]}) {

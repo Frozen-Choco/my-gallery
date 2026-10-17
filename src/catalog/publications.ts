@@ -4,7 +4,10 @@ export const youtube = {name:'冷凍チョコ', id:'UCFH81ruwAfy-d2TzVRjsJFA', u
 export interface Publication {id: string; title: string; url: string; kind: 'video' | 'game'; thumbnail?: string; publishedAt?: string}
 export interface Video extends Publication {kind: 'video'; thumbnail: string; publishedAt: string}
 // Games are listed newest first. Add a publication date when it is known.
-export const publishedGames: Publication[] = [{id:'stardust-cradle', title:'星屑のゆりかご', url:'https://stardust-cradle-game.pages.dev/', kind:'game'}];
+export const publishedGames: Publication[] = [
+  {id:'tomori-labyrinth', title:'灯守と常夜の迷宮', url:'https://tomori-labyrinth.pages.dev/', kind:'game'},
+  {id:'stardust-cradle', title:'星屑のゆりかご', url:'https://stardust-cradle-game.pages.dev/', kind:'game'},
+];
 
 export function normalizeVideos(data: unknown): Video[] {
   if (!data || typeof data !== 'object' || !('videos' in data) || !Array.isArray(data.videos)) throw new Error('Invalid video catalog');

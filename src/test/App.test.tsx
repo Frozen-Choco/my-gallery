@@ -211,6 +211,10 @@ describe('catalog interaction after the React migration', () => {
     const game = screen.getByRole('link', {name:'星屑のゆりかごを開く（新しいタブ）'});
     expect(game.getAttribute('href')).toBe('https://stardust-cradle-game.pages.dev/');
     expect(game.getAttribute('rel')).toContain('noopener');
+    const tomori = screen.getByRole('link', {name:'灯守と常夜の迷宮を開く（新しいタブ）'});
+    expect(tomori.getAttribute('href')).toBe('https://tomori-labyrinth.pages.dev/');
+    expect(document.querySelector('.published-game')).toBe(tomori);
+    expect(tomori.querySelector('.game-artwork-title')?.textContent).toBe('灯守と常夜の迷宮');
     expect(screen.queryByRole('searchbox')).toBeNull();
     await user.click(screen.getByRole('button', {name:'メニューを開く'}));
     await user.click(screen.getByRole('button', {name:'メディア'}));

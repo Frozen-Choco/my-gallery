@@ -1,4 +1,6 @@
 .game-artwork{position:relative;overflow:hidden;aspect-ratio:2/1;border-radius:7px;background:#192d3b;color:#e6e7cd;container-type:inline-size}.cradle-orbits{position:absolute;width:100%;height:100%;stroke:#8fafa9;stroke-width:1;opacity:.65}.cradle-star{fill:#e0c78f;stroke:none}.game-artwork-title{position:absolute;left:9%;top:21%;font-family:'Noto Serif JP',serif;font-size:8cqw;letter-spacing:.18em;line-height:1.65;font-weight:400}.publication-image{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:7px;background:#e8e9e2}
+.tomori-artwork{background:radial-gradient(ellipse at 70% 55%,#69512b66,transparent 40%),#121a22;color:#f0dfb8}
+.tomori-labyrinth{position:absolute;width:100%;height:100%}
 /* Fan banner: backdrop, side cards, spotlights, then the selected card. */
 .featured-banner{position:relative;isolation:isolate;margin-bottom:38px;container-type:inline-size}
 .featured-banner::before,.featured-banner::after{content:'';position:absolute;inset:9cqw 0 0;border-radius:12px;pointer-events:none}
