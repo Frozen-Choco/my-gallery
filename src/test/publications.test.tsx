@@ -60,14 +60,56 @@ it('fills missing cards by repetition, including a rotating single work', () => 
   vi.useFakeTimers(); const view = render(<FeaturedBanner items={items.slice(0,1)}/>);
   expect(cards()).toHaveLength(5);
   expect(cards().every(card => card.href === items[0].url)).toBe(true);
-  expect(screen.queryByRole('button')).toBeNull();
+  expect(document.querySelector('.banner-dots')).toBeNull();
   const initial = centre();
   act(() => vi.advanceTimersByTime(5000));
   expect(centre()).not.toBe(initial);
   expect(centre().href).toBe(items[0].url);
   view.rerender(<FeaturedBanner key="two" items={items.slice(0,2)}/>);
   expect(cards().map(card => card.href)).toEqual([items[0].url,items[1].url,items[0].url,items[1].url,items[0].url]);
-  expect(screen.getAllByRole('button')).toHaveLength(2);
+  expect(document.querySelectorAll('.banner-dots button')).toHaveLength(2);
+});
+
+it('brings the exact rear card forward without opening its link, including duplicated works', () => {
+  render(<FeaturedBanner items={items.slice(0,1)}/>);
+  const rear = cards()[2];
+  expect(fireEvent.click(rear)).toBe(false);
+  expect(centre()).toBe(rear);
+  expect(fireEvent.click(rear)).toBe(true);
+  const other = cards()[4];
+  fireEvent.keyDown(other, {key:' '});
+  expect(centre()).toBe(other);
+});
+
+it('handles wheel directions, small trackpad deltas and inertia without scrolling the page', () => {
+  vi.useFakeTimers(); render(<FeaturedBanner items={items}/>);
+  const window = document.querySelector('.banner-window')!;
+  expect(fireEvent.wheel(window, {deltaY:25})).toBe(false);
+  expect(centre().href).toBe(items[0].url);
+  fireEvent.wheel(window, {deltaY:25});
+  expect(centre().href).toBe(items[1].url);
+  fireEvent.wheel(window, {deltaY:200});
+  expect(centre().href).toBe(items[1].url);
+  act(() => vi.advanceTimersByTime(1000));
+  fireEvent.wheel(window, {deltaX:-100});
+  expect(centre().href).toBe(items[0].url);
+  expect(fireEvent.wheel(window, {deltaY:100,ctrlKey:true})).toBe(true);
+  expect(centre().href).toBe(items[0].url);
+});
+
+it('swipes horizontally without following a link and leaves vertical touch scrolling alone', () => {
+  render(<FeaturedBanner items={items}/>);
+  const window = document.querySelector('.banner-window')!;
+  fireEvent.touchStart(window, {touches:[{clientX:200,clientY:100}]});
+  fireEvent.touchEnd(window, {changedTouches:[{clientX:100,clientY:105}]});
+  expect(centre().href).toBe(items[1].url);
+  expect(fireEvent.click(centre())).toBe(false);
+  fireEvent.touchStart(window, {touches:[{clientX:100,clientY:100}]});
+  fireEvent.touchEnd(window, {changedTouches:[{clientX:150,clientY:200}]});
+  expect(centre().href).toBe(items[1].url);
+  fireEvent.touchStart(window, {touches:[{clientX:100,clientY:100}]});
+  fireEvent.touchEnd(window, {changedTouches:[{clientX:200,clientY:100}]});
+  expect(centre().href).toBe(items[0].url);
 });
 
 it('does not auto-rotate with reduced motion and renders nothing for no works', () => {

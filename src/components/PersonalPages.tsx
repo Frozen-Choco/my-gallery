@@ -1,4 +1,4 @@
-import {useEffect, useState, type CSSProperties} from 'react';
+import {useEffect, useRef, useState, type CSSProperties} from 'react';
 import type {PersonalPage, Model} from '../types';
 import {collectionPages, exampleCatalogs, titles} from '../catalog';
 import {featuredPublications, publishedGames, youtube, type Publication, type Video} from '../catalog/publications';
@@ -29,7 +29,11 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
   const [step, setStep] = useState(0);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
-  const paused = hovered || focused;
+  const [touching, setTouching] = useState(false);
+  const paused = hovered || focused || touching;
+  const windowRef = useRef<HTMLDivElement>(null);
+  const touchStart = useRef<{x: number; y: number} | null>(null);
+  const suppressClickUntil = useRef(0);
   const [hidden, setHidden] = useState(document.hidden);
   const [reduced, setReduced] = useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
   useEffect(() => {
@@ -43,7 +47,33 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
     if (!items.length || paused || hidden || reduced) return;
     const timer = setInterval(() => setStep(current => (current + 1) % 5), 5000);
     return () => clearInterval(timer);
-  }, [items.length, paused, hidden, reduced]);
+  }, [items.length, paused, hidden, reduced, step]);
+  useEffect(() => {
+    const window = windowRef.current;
+    if (!window) return;
+    let accumulated = 0;
+    let lastEvent = 0;
+    let lastTurn = -Infinity;
+    const wheel = (event: WheelEvent) => {
+      if (event.ctrlKey) return; // Keep trackpad pinch zoom available.
+      const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+      if (!delta) return;
+      event.preventDefault();
+      const now = performance.now();
+      if (now - lastEvent > 180 || Math.sign(delta) !== Math.sign(accumulated)) accumulated = 0;
+      lastEvent = now;
+      // One turn per gesture; inertia must not race through the carousel.
+      if (now - lastTurn < 950) return;
+      accumulated += delta * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.clientHeight : 1);
+      if (Math.abs(accumulated) < 40) return;
+      const direction = Math.sign(accumulated);
+      setStep(current => (current + direction + 5) % 5);
+      accumulated = 0;
+      lastTurn = now;
+    };
+    window.addEventListener('wheel', wheel, {passive:false});
+    return () => window.removeEventListener('wheel', wheel);
+  }, [items.length]);
   if (!items.length) return null;
   // Five physical cards remain mounted, even when several show the same work.
   // A card wrapping from the left edge to the right travels behind the others.
@@ -56,15 +86,40 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
   return <section className="featured-banner" aria-label="新着作品" aria-roledescription="カルーセル"
     onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
     onFocusCapture={() => setFocused(true)} onBlurCapture={event => {if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false);}}>
-    <div className="banner-window"><div className="banner-track">
+    <div className="banner-window" ref={windowRef}
+      onTouchStart={event => {
+        const touch = event.touches.length === 1 ? event.touches[0] : null;
+        touchStart.current = touch ? {x:touch.clientX, y:touch.clientY} : null;
+        setTouching(!!touch);
+      }}
+      onTouchCancel={() => {touchStart.current = null; setTouching(false);}}
+      onTouchEnd={event => {
+        const start = touchStart.current;
+        const end = event.changedTouches[0];
+        touchStart.current = null;
+        setTouching(false);
+        if (!start || !end) return;
+        const dx = end.clientX - start.x;
+        const dy = end.clientY - start.y;
+        if (Math.abs(dx) < 40 || Math.abs(dx) <= Math.abs(dy)) return;
+        suppressClickUntil.current = performance.now() + 500;
+        setStep(current => (current + (dx < 0 ? 1 : -1) + 5) % 5);
+      }}><div className="banner-track">
       {sequence.map((item, index) => {
         const slot = (index - step + 7) % 5 - 2;
         const depth = Math.abs(slot);
         const x = depth === 0 ? 0 : Math.sign(slot) * (depth === 1 ? 31 : 56);
         const z = depth === 0 ? 0 : depth === 1 ? -38 : -72;
         const active = slot === 0;
-        const style = {'--banner-x':`${x}cqw`, '--banner-depth':`${z}cqw`, '--banner-light':depth === 0 ? 1 : depth === 1 ? .68 : .42, transition:reduced ? 'none' : undefined} as CSSProperties;
-        return <a key={`${index}-${item.id}`} className="banner-slide" data-slot={slot} style={style} href={item.url} target="_blank" rel="noopener noreferrer" tabIndex={active ? 0 : -1} aria-hidden={!active} aria-label={`${item.title}（新しいタブ）`}>
+        const style = {'--banner-x':`${x}cqw`, '--banner-depth':`${z}cqw`, '--banner-light':depth === 0 ? 1 : depth === 1 ? .68 : .42, zIndex:3 - depth, transition:reduced ? 'none' : undefined} as CSSProperties;
+        return <a key={`${index}-${item.id}`} className="banner-slide" data-slot={slot} style={style} href={item.url} target="_blank" rel="noopener noreferrer"
+          role={active ? undefined : 'button'} aria-label={active ? `${item.title}（新しいタブ）` : `${item.title}を中央に表示`}
+          draggable={false}
+          onClick={event => {
+            if (performance.now() < suppressClickUntil.current) {event.preventDefault(); return;}
+            if (!active) {event.preventDefault(); setStep(index);}
+          }}
+          onKeyDown={event => {if (!active && event.key === ' ') {event.preventDefault(); setStep(index);}}}>
           <PublicationArtwork item={item}/>{item.kind === 'video' && <span className="banner-title">{item.title}</span>}
         </a>;
       })}
