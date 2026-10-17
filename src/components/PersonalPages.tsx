@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useRef, useState, type CSSProperties} from 'react';
+import {useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties} from 'react';
 import type {PersonalPage, Model} from '../types';
 import {collectionPages, exampleCatalogs, titles} from '../catalog';
 import {featuredPublications, publishedGames, youtube, type Publication, type Video} from '../catalog/publications';
@@ -191,10 +191,10 @@ export function PublicationList({items, kind}: {items: Publication[]; kind: 'gam
   const pages = Math.max(1, Math.ceil(items.length / contentPageSize));
   const current = Math.min(page, pages);
   const start = (current - 1) * contentPageSize;
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!moveFocus.current) return;
     moveFocus.current = false;
-    top.current?.scrollIntoView({block:'start'});
+    window.scrollTo({top:0, left:0, behavior:'instant'});
     top.current?.focus({preventScroll:true});
   }, [current]);
   function changePage(next: number) {moveFocus.current = true; setPage(next);}

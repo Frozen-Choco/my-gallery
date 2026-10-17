@@ -1,6 +1,6 @@
 import {Fragment} from 'react';
 
-export const contentPageSize = 24;
+export const contentPageSize = 20;
 export function pageNumbers(page: number, pages: number): (number | 'gap')[] {
   const numbers = [...new Set([1, page - 1, page, page + 1, pages])].filter(value => value > 0 && value <= pages).sort((a, b) => a - b);
   return numbers.flatMap((value, index) => {

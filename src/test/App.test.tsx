@@ -84,7 +84,7 @@ describe('catalog interaction after the React migration', () => {
     expect(window.scrollTo).toHaveBeenCalledWith({top:0, left:0, behavior:'instant'});
     expect(location.hash).toBe('#design-all');
     expect([...document.querySelectorAll('#gallery .card-title')].slice(0,8).map(node => node.textContent)).toEqual(previewNames);
-    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(24);
+    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(20);
     expect(screen.queryByRole('group', {name:'デザインの一覧'})).toBeNull();
     for (const [name, hash, count] of [['ウェブ','#styles',16], ['ゲーム','#games',12]] as const) {
       await user.click(screen.getByRole('link', {name:'デザイン'}));
@@ -112,7 +112,7 @@ describe('catalog interaction after the React migration', () => {
     await user.click(screen.getByRole('button', {name:'閉じる'}));
     await user.click(animationRow.getByRole('link', {name:'すべて見る'}));
     expect(location.hash).toBe('#animation-all');
-    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(24);
+    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(20);
     expect(screen.queryByRole('group', {name:'アニメーションの一覧'})).toBeNull();
     for (const [name, hash, count] of [['モーション','#motion',13], ['トランジション','#transitions',12]] as const) {
       await user.click(screen.getByRole('link', {name:'アニメーション'}));
@@ -126,7 +126,7 @@ describe('catalog interaction after the React migration', () => {
     history.replaceState(null, '', '/#animation-all');
     fireEvent(window, new PopStateEvent('popstate'));
     expect(screen.getByRole('heading', {level:1}).textContent).toBe('アニメーション一覧');
-    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(24);
+    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(20);
   });
   it('starts desktop navigation closed and preserves its toggle state across page navigation', async () => {
     const user = userEvent.setup(); renderApp();
@@ -288,18 +288,20 @@ describe('catalog interaction after the React migration', () => {
   it.each([['design-all',28], ['animation-all',25]] as const)('paginates %s after sorting and filtering the complete catalog', async (route, count) => {
     history.replaceState(null, '', '/#' + route);
     const user = userEvent.setup(); renderApp();
-    expect(screen.getByText(`1–24 / ${count}件`)).toBeTruthy();
+    expect(screen.getByText(`1–20 / ${count}件`)).toBeTruthy();
     const firstPage = [...document.querySelectorAll('#gallery .card-title')].map(node => node.textContent);
     const bottom = within(screen.getByRole('navigation', {name:'ページ送り'}));
+    vi.mocked(window.scrollTo).mockClear();
     await user.click(bottom.getByRole('button', {name:'2ページ'}));
-    expect(screen.getByText(`25–${count} / ${count}件`)).toBeTruthy();
-    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(count - 24);
+    expect(window.scrollTo).toHaveBeenCalledWith({top:0, left:0, behavior:'instant'});
+    expect(screen.getByText(`21–${count} / ${count}件`)).toBeTruthy();
+    expect(document.querySelectorAll('#gallery .style-card')).toHaveLength(count - 20);
     const lastPage = [...document.querySelectorAll('#gallery .card-title')].map(node => node.textContent);
     expect(lastPage.every(name => !firstPage.includes(name))).toBe(true);
     expect(document.activeElement).toBe(document.querySelector('.results-bar'));
     expect(screen.queryByRole('combobox', {name:'ページを選択'})).toBeNull();
     await user.selectOptions(screen.getByRole('combobox', {name:'並び順'}), 'name-desc');
-    expect(screen.getByText(`1–24 / ${count}件`)).toBeTruthy();
+    expect(screen.getByText(`1–20 / ${count}件`)).toBeTruthy();
     expect(document.querySelector('#gallery .card-title')?.textContent).toBe(lastPage.at(-1));
     await user.click(bottom.getByRole('button', {name:'2ページ'}));
     await user.type(screen.getByRole('searchbox'), firstPage[0]!);
@@ -310,13 +312,15 @@ describe('catalog interaction after the React migration', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ok:true, json:async () => fixtureModels(1000)}));
     history.replaceState(null, '', '/#models');
     const user = userEvent.setup(); renderApp();
-    await screen.findByText('1–60 / 1000件');
-    expect(document.querySelectorAll('.model-card').length).toBe(60);
+    await screen.findByText('1–40 / 1000件');
+    expect(document.querySelectorAll('.model-card').length).toBe(40);
     expect(fetch).toHaveBeenCalledTimes(1);
     const paging = () => within(screen.getByRole('navigation', {name:'ページ送り'}));
+    vi.mocked(window.scrollTo).mockClear();
     await user.click(paging().getByRole('button', {name:'次のページ'}));
-    expect(screen.getByText('61–120 / 1000件')).toBeTruthy();
-    await user.click(paging().getByRole('button', {name:'17ページ'}));
+    expect(window.scrollTo).toHaveBeenCalledWith({top:0, left:0, behavior:'instant'});
+    expect(screen.getByText('41–80 / 1000件')).toBeTruthy();
+    await user.click(paging().getByRole('button', {name:'25ページ'}));
     expect(screen.getByText('961–1000 / 1000件')).toBeTruthy();
     expect(document.querySelectorAll('.model-card').length).toBe(40);
     expect((paging().getByRole('button', {name:'次のページ'}) as HTMLButtonElement).disabled).toBe(true);
@@ -328,13 +332,13 @@ describe('catalog interaction after the React migration', () => {
     await user.click(download);
     expect(trackDownload).toHaveBeenLastCalledWith('model_0999', 'glb');
     await user.clear(screen.getByRole('searchbox'));
-    await user.click(paging().getByRole('button', {name:'17ページ'}));
+    await user.click(paging().getByRole('button', {name:'25ページ'}));
     await user.selectOptions(screen.getByRole('combobox', {name:'カテゴリで絞り込む'}), '家具');
-    expect(screen.getByText('1–60 / 500件')).toBeTruthy();
+    expect(screen.getByText('1–40 / 500件')).toBeTruthy();
     await user.type(screen.getByRole('searchbox'), '該当しない');
     expect(screen.getByText('該当する見本がありません。')).toBeTruthy();
     await user.click(screen.getByRole('button', {name:'絞り込みを解除'}));
-    expect(screen.getByText('1–60 / 1000件')).toBeTruthy();
+    expect(screen.getByText('1–40 / 1000件')).toBeTruthy();
   });
   it('handles first-wheel zoom once, switches photos, resets and disposes the viewer', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ok:true, json:async () => fixtureModels(1)}));

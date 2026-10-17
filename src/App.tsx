@@ -14,7 +14,7 @@ import {CollectionOverview} from './components/CollectionOverview';
 import {useLiquidSidebar} from './components/useLiquidSidebar';
 import type {ExampleItem, ExamplePage, Model, ModelCatalog, ModelStatus, Page, SitePage, Selection, SortOrder} from './types';
 
-const modelPageSize = 60;
+const modelPageSize = 40;
 function scrollToPageTop() {window.scrollTo({top: 0, left: 0, behavior: 'instant'});}
 type NavigationItem = {page: SitePage; icon: IconName; divider?: boolean};
 type SourcedItem = (ExampleItem | Model) & {sourcePage: Page};
@@ -118,9 +118,9 @@ export function App() {
   const currentPage = Math.min(listPage, pages), start = (currentPage - 1) * pageSize;
   const visible = matched.slice(start, start + pageSize);
   function changeListPage(next: number) {paginationFocus.current = true; setListPage(next);}
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!paginationFocus.current) return;
-    paginationFocus.current = false; resultsRef.current?.scrollIntoView({block: 'start'});
+    paginationFocus.current = false; scrollToPageTop();
     resultsRef.current?.focus({preventScroll: true});
   }, [currentPage]);
   function openDetail(item: SourcedItem) {
