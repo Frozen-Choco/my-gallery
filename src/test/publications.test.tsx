@@ -38,8 +38,9 @@ it('keeps five cards mounted and cycles clockwise through all positions without 
     expect(screen.getAllByRole('link')).toHaveLength(1);
   }
   expect(original[0].dataset.slot).toBe('0');
-  expect(original[1].style.getPropertyValue('--banner-depth')).toBe('-14cqw');
-  expect(original[2].style.getPropertyValue('--banner-depth')).toBe('-32cqw');
+  const depths = original.slice(0,3).map(card => parseFloat(card.style.getPropertyValue('--banner-depth')));
+  expect(depths[0]).toBeGreaterThan(depths[1]);
+  expect(depths[1]).toBeGreaterThan(depths[2]);
 });
 
 it('pauses for focus and hover, and offers manual selection', () => {

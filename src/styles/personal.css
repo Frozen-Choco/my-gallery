@@ -2,7 +2,7 @@
 .featured-banner{margin-bottom:38px;container-type:inline-size}
 .banner-window{overflow:clip;padding:3cqw 0}
 .banner-track{position:relative;aspect-ratio:16/5;perspective:100cqw;transform-style:preserve-3d}
-.banner-slide{display:block;position:absolute;left:50%;top:50%;width:46%;aspect-ratio:16/9;text-decoration:none;overflow:hidden;border-radius:8px;background:#192d3b;box-shadow:0 10px 28px #192d3b26;transform:translate(-50%,-50%) translate3d(var(--banner-x),0,var(--banner-depth));filter:brightness(var(--banner-light));transition:transform 900ms cubic-bezier(.4,0,.2,1),filter 900ms cubic-bezier(.4,0,.2,1);backface-visibility:hidden}
+.banner-slide{display:block;position:absolute;left:50%;top:50%;width:54%;aspect-ratio:16/9;text-decoration:none;overflow:hidden;border-radius:8px;background:#192d3b;box-shadow:0 10px 28px #192d3b26;transform:translate(-50%,-50%) translate3d(var(--banner-x),0,var(--banner-depth));filter:brightness(var(--banner-light));transition:transform 900ms cubic-bezier(.4,0,.2,1),filter 900ms cubic-bezier(.4,0,.2,1);backface-visibility:hidden}
 .banner-slide:focus-visible{outline-offset:-4px}
 .banner-slide>.game-artwork,.banner-slide>.publication-image{width:100%;height:100%;border-radius:0;aspect-ratio:auto}
 .banner-slide>.publication-image{object-fit:contain}

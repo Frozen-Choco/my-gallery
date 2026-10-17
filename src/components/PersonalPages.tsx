@@ -60,10 +60,10 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
       {sequence.map((item, index) => {
         const slot = (index - step + 7) % 5 - 2;
         const depth = Math.abs(slot);
-        const x = depth === 0 ? 0 : Math.sign(slot) * (depth === 1 ? 24 : 42);
-        const z = depth === 0 ? 0 : depth === 1 ? -14 : -32;
+        const x = depth === 0 ? 0 : Math.sign(slot) * (depth === 1 ? 31 : 56);
+        const z = depth === 0 ? 0 : depth === 1 ? -38 : -72;
         const active = slot === 0;
-        const style = {'--banner-x':`${x}cqw`, '--banner-depth':`${z}cqw`, '--banner-light':depth === 0 ? 1 : depth === 1 ? .9 : .8, transition:reduced ? 'none' : undefined} as CSSProperties;
+        const style = {'--banner-x':`${x}cqw`, '--banner-depth':`${z}cqw`, '--banner-light':depth === 0 ? 1 : depth === 1 ? .68 : .42, transition:reduced ? 'none' : undefined} as CSSProperties;
         return <a key={`${index}-${item.id}`} className="banner-slide" data-slot={slot} style={style} href={item.url} target="_blank" rel="noopener noreferrer" tabIndex={active ? 0 : -1} aria-hidden={!active} aria-label={`${item.title}（新しいタブ）`}>
           <PublicationArtwork item={item}/>{item.kind === 'video' && <span className="banner-title">{item.title}</span>}
         </a>;
