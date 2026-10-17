@@ -229,3 +229,64 @@ it('does not auto-rotate with reduced motion and renders nothing for no works', 
   view.rerender(<FeaturedBanner items={[]}/>);
   expect(screen.queryByRole('region', {name:'新着作品'})).toBeNull();
 });
+
+function mouseBanner() {
+  const banner = document.querySelector<HTMLDivElement>('.banner-window')!;
+  Object.defineProperty(banner, 'clientWidth', {value:960});
+  Object.assign(banner, {setPointerCapture:vi.fn(), hasPointerCapture:vi.fn(() => true), releasePointerCapture:vi.fn()});
+  return banner;
+}
+const mouse = {pointerId:1, pointerType:'mouse', button:0, buttons:1, clientY:200};
+
+it('drags continuously with the mouse, captures outside movement, snaps on release and resumes autoplay', () => {
+  vi.useFakeTimers(); render(<FeaturedBanner items={items}/>);
+  const banner = mouseBanner();
+  fireEvent.pointerDown(banner, {...mouse,clientX:700});
+  fireEvent.pointerMove(banner, {...mouse,clientX:556});
+  expect(position()).toBeCloseTo(.3);
+  expect(banner.setPointerCapture).toHaveBeenCalledWith(1);
+  advance(6000);
+  expect(position()).toBeCloseTo(.3);
+  fireEvent.pointerMove(banner, {...mouse,clientX:124});
+  expect(position()).toBeCloseTo(1.2);
+  fireEvent.pointerMove(banner, {...mouse,clientX:220});
+  expect(position()).toBeCloseTo(1);
+  fireEvent.pointerUp(banner, {...mouse,buttons:0,clientX:172});
+  expect(position()).toBeCloseTo(1.1);
+  expect(banner.releasePointerCapture).toHaveBeenCalledWith(1);
+  expect(fireEvent.click(centre())).toBe(false);
+  advance(1200);
+  expect(position()).toBe(1);
+  advance(5000);
+  expect(position()).toBe(2);
+});
+
+it('preserves ordinary clicks and ignores right-button dragging', () => {
+  vi.useFakeTimers(); render(<FeaturedBanner items={items}/>);
+  const banner = mouseBanner();
+  fireEvent.pointerDown(centre(), {...mouse,clientX:700});
+  fireEvent.pointerMove(banner, {...mouse,clientX:698});
+  fireEvent.pointerUp(centre(), {...mouse,buttons:0,clientX:698});
+  expect(banner.setPointerCapture).not.toHaveBeenCalled();
+  expect(fireEvent.click(centre())).toBe(true);
+  fireEvent.pointerDown(banner, {...mouse,button:2,buttons:2,clientX:700});
+  fireEvent.pointerMove(banner, {...mouse,buttons:2,clientX:100});
+  expect(position()).toBe(0);
+});
+
+it('settles a cancelled mouse drag and clears the held state on window blur', () => {
+  vi.useFakeTimers(); render(<FeaturedBanner items={items}/>);
+  const banner = mouseBanner();
+  fireEvent.pointerDown(banner, {...mouse,clientX:700});
+  fireEvent.pointerMove(banner, {...mouse,clientX:364});
+  fireEvent.pointerCancel(banner, {...mouse,clientX:364});
+  advance(1200);
+  expect(position()).toBe(1);
+  fireEvent.pointerDown(banner, {...mouse,clientX:700});
+  fireEvent.pointerMove(banner, {...mouse,clientX:556});
+  fireEvent.blur(window);
+  advance(1200);
+  expect(position()).toBe(1);
+  advance(5000);
+  expect(position()).toBe(2);
+});
