@@ -9,6 +9,7 @@ import {ModelCard} from './components/ModelPreview';
 import {PersonalPages} from './components/PersonalPages';
 import {ExampleCard} from './components/ExampleCard';
 import {CollectionOverview} from './components/CollectionOverview';
+import {useLiquidSidebar} from './components/useLiquidSidebar';
 import type {ExampleItem, ExamplePage, Model, ModelCatalog, ModelStatus, Page, SitePage, Selection, SortOrder} from './types';
 
 const pageSize = 60;
@@ -64,19 +65,11 @@ export function App() {
   const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(false);
   const [mobile, setMobile] = useState(() => window.matchMedia('(max-width: 760px)').matches);
   const sidebarVisible = mobile ? sidebarOpen : desktopSidebarOpen;
-  const sidebarControlFocus = useRef(false);
-  const menuRef = useRef<HTMLButtonElement>(null);
-  const sidebarCloseRef = useRef<HTMLButtonElement>(null);
+  const menu = useLiquidSidebar(sidebarVisible, mobile, route);
   function changeSidebar(open: boolean) {
-    sidebarControlFocus.current = true;
+    menu.refs.toggle.current?.focus({preventScroll:true});
     if (mobile) setSidebarOpen(open); else setDesktopSidebarOpen(open);
   }
-  useEffect(() => {
-    if (sidebarControlFocus.current || (!sidebarVisible && document.getElementById('sidebar')?.contains(document.activeElement))) {
-      (sidebarVisible ? sidebarCloseRef : menuRef).current?.focus({preventScroll: true});
-    }
-    sidebarControlFocus.current = false;
-  }, [sidebarVisible]);
   const [message, setMessage] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -97,7 +90,7 @@ export function App() {
     const keydown = (event: KeyboardEvent) => {
       const target = event.target as Element | null;
       if (event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey && !target?.closest('input,textarea,[contenteditable]') && !document.querySelector('dialog[open]')) {event.preventDefault(); searchRef.current?.focus();}
-      if (event.key === 'Escape') setSidebarOpen(false);
+      if (event.key === 'Escape' && !document.querySelector('dialog[open]')) {setSidebarOpen(false); setDesktopSidebarOpen(false);}
     };
     media.addEventListener('change', resize); window.addEventListener('hashchange', hashchange); window.addEventListener('popstate', hashchange);
     document.addEventListener('keydown', keydown);
@@ -134,27 +127,33 @@ export function App() {
   const empty = matched.length === 0 && !(page === 'models' && ['idle', 'loading', 'error'].includes(models.status));
   const status = page === 'models' ? models.status : '';
   function navigationButton(item: NavigationItem) {
-    return <button key={item.page} className={`nav-item${(collection ?? route) === item.page ? ' active' : ''}`} data-page={item.page} aria-current={(collection ?? route) === item.page ? 'page' : undefined} onClick={() => navigate(item.page)}><span><Icon name={item.icon}/></span><span>{titles[item.page]}</span></button>;
+    const active = (collection ?? route) === item.page;
+    return <button key={item.page} className={`nav-item${active ? ' active' : ''}`} data-page={item.page} aria-current={active ? 'page' : undefined} onClick={() => navigate(item.page)}>
+      {active && <span className="sidebar-flow sidebar-flow-background" aria-hidden="true"/>}
+      <span className="sidebar-flow sidebar-flow-content"><Icon name={item.icon}/><span>{titles[item.page]}</span></span>
+    </button>;
   }
   return <>
     <a href="#main" className="skip">コンテンツへ移動</a>
-    {mobile && sidebarOpen && <button type="button" className="sidebar-backdrop" aria-label="メニューの外側を押して閉じる" onClick={() => changeSidebar(false)}/>}
-    <aside className={`sidebar${sidebarVisible ? ' open' : ''}`} id="sidebar" inert={!sidebarVisible} aria-hidden={!sidebarVisible}>
-      {sidebarVisible && <button ref={sidebarCloseRef} type="button" className="icon-button sidebar-close" title="メニューを閉じる" aria-label="メニューを閉じる" aria-expanded={true} aria-controls="sidebar" onClick={() => changeSidebar(false)}><Icon name="collapse"/></button>}
-      <div className="sidebar-content">
-      <Brand/>
-      <nav aria-label="メインナビゲーション">{navigation.map(entry => <Fragment key={entry.page}>
-        {entry.divider && <hr className="sidebar-divider" aria-hidden="true"/>}
-        {navigationButton(entry)}
-      </Fragment>)}</nav>
-      <a className="privacy-link" href="./privacy.html">プライバシー</a>
+    <button ref={menu.refs.backdrop} type="button" className="sidebar-backdrop" hidden={!mobile || !menu.present} tabIndex={-1} aria-label="メニューの外側を押して閉じる" onClick={() => changeSidebar(false)}/>
+    <aside ref={menu.refs.panel} className="sidebar" id="sidebar" data-animating={menu.animating}>
+      <div ref={menu.refs.reveal} className="sidebar-reveal" id="sidebar-menu" inert={!sidebarVisible} aria-hidden={!sidebarVisible}>
+        <div ref={menu.refs.content} className="sidebar-content">
+          <Brand/>
+          <nav aria-label="メインナビゲーション">{navigation.map(entry => <Fragment key={entry.page}>
+            {entry.divider && <hr className="sidebar-divider" aria-hidden="true"/>}
+            {navigationButton(entry)}
+          </Fragment>)}</nav>
+          <a className="privacy-link" href="./privacy.html">プライバシー</a>
+        </div>
       </div>
+      <button ref={menu.refs.toggle} id="menu-button" type="button" className="sidebar-toggle" title={sidebarVisible ? 'メニューを閉じる' : 'メニューを開く'} aria-label={sidebarVisible ? 'メニューを閉じる' : 'メニューを開く'} aria-expanded={sidebarVisible} aria-controls="sidebar-menu" onClick={() => changeSidebar(!sidebarVisible)}><Icon name="menu"/></button>
     </aside>
-    <div className={`workspace${mobile && sidebarVisible ? ' menu-obscured' : ''}${!mobile && !desktopSidebarOpen ? ' sidebar-collapsed' : ''}`}><header className={`site-header${!sidebarVisible ? ' menu-visible' : ''}`}>
-      <div className="catalog-heading"><div className="section-title"><button ref={menuRef} id="menu-button" className={`icon-button menu-open${sidebarVisible ? ' is-hidden' : ''}`} aria-hidden={sidebarVisible} disabled={sidebarVisible} title="メニューを開く" aria-label="メニューを開く" aria-expanded={false} aria-controls="sidebar" onClick={() => changeSidebar(true)}><Icon name="menu"/></button><h1 id="catalog-title">{titles[route]}</h1></div>
-      </div>
-      <div className="header-brand-viewport" aria-hidden={!mobile && sidebarVisible} inert={!mobile && sidebarVisible}><Brand header/></div>
-      </header><main id="main"><section className="catalog" aria-labelledby="catalog-title">
+    <header className="site-header">
+      <div ref={menu.refs.heading} className="catalog-heading"><div className="section-title"><h1 id="catalog-title">{titles[route]}</h1></div></div>
+      <div ref={menu.refs.headerLogo} className="header-brand-viewport" aria-hidden={!mobile && sidebarVisible} inert={!mobile && sidebarVisible}><Brand header/></div>
+    </header>
+    <div ref={menu.refs.workspace} className={`workspace${mobile && menu.present ? ' menu-obscured' : ''}${!mobile && !desktopSidebarOpen ? ' sidebar-collapsed' : ''}`}><main id="main"><section className="catalog" aria-labelledby="catalog-title">
       {personalPage ? <PersonalPages page={personalPage} models={models.catalog.items}/> : overview ? <CollectionOverview key={overview} collection={overview} onNavigate={next => {setSort('name-asc'); navigate(next);}} paused={selection !== null} onOpen={({page:sourcePage, item}) => openDetail({...item, sourcePage})}/> : <>
       {collection && <a className="collection-back" href={`#${collection}`} onClick={event => {if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button === 0) {event.preventDefault(); navigate(collection);}}}>← {titles[collection]}</a>}
       <div className="catalog-toolbar">
