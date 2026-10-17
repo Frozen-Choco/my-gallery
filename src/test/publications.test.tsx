@@ -41,9 +41,11 @@ it('keeps five cards mounted and cycles clockwise through all positions without 
     expect(screen.getAllByRole('link')).toHaveLength(1);
   }
   expect(original[0].dataset.slot).toBe('0');
-  const depths = original.slice(0,3).map(card => parseFloat(card.style.getPropertyValue('--banner-depth')));
-  expect(depths[0]).toBeGreaterThan(depths[1]);
-  expect(depths[1]).toBeGreaterThan(depths[2]);
+  const scales = original.slice(0,3).map(card => Number(card.style.getPropertyValue('--banner-scale')));
+  expect(scales[0]).toBeGreaterThan(scales[1]);
+  expect(scales[1]).toBeGreaterThan(scales[2]);
+  expect(Number(centre().style.zIndex)).toBeGreaterThan(1500);
+  expect(Number(original[1].style.zIndex)).toBeLessThan(1500);
 });
 
 it('resumes five seconds after selection even while hover and focus remain', () => {
@@ -383,4 +385,14 @@ it.each(['mouse', 'touch'] as const)('uses the final %s direction and caps the e
   expect(position()).toBeLessThan(-.3);
   advance(1800);
   expect(position()).toBe(-1);
+});
+
+it('moves between works with the banner arrow controls', () => {
+  vi.useFakeTimers(); render(<FeaturedBanner items={items}/>);
+  fireEvent.click(screen.getByRole('button', {name:'次の作品'}));
+  advance(1500);
+  expect(centre().href).toBe(items[1].url);
+  fireEvent.click(screen.getByRole('button', {name:'前の作品'}));
+  advance(1500);
+  expect(centre().href).toBe(items[0].url);
 });

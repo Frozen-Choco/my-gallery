@@ -164,7 +164,16 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
         const [x, z, light] = bannerPose(index - position);
         const active = slot === 0;
         const aligned = Math.abs(position - Math.round(position)) < .01;
-        const style = {'--banner-x':`${x}cqw`, '--banner-depth':`${z}cqw`, '--banner-light':light, zIndex:Math.round(1000 + z * 10)} as CSSProperties;
+        const scale = 100 / (100 - z);
+        const style = {
+          '--banner-x': `${x * scale * .93}cqw`,
+          '--banner-y': `${-z * .075}cqw`,
+          '--banner-scale': scale,
+          '--banner-tilt': `${x * .14}deg`,
+          '--banner-light': Math.max(.32, Math.pow(light, 1.8)),
+          // The spotlight sits above the side cards and below the selected card.
+          zIndex: Math.round(1000 + z * 10) + (active ? 2000 : 0),
+        } as CSSProperties;
         return <a key={`${index}-${item.id}`} className="banner-slide" data-slot={slot} style={style} href={item.url} target="_blank" rel="noopener noreferrer"
           role={active ? undefined : 'button'} aria-label={active ? `${item.title}（新しいタブ）` : `${item.title}を中央に表示`}
           draggable={false}
@@ -177,7 +186,11 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
         </a>;
       })}
     </div></div>
-    <div className="banner-dots" role="group" aria-label="バナーの表示位置">{items.map((item, index) => <button key={item.id} type="button" aria-label={`${index + 1} / ${items.length}：${item.title}を表示`} aria-pressed={activeItem.id === item.id} onClick={() => selectItem(item)}/>)}</div>
+    <div className="banner-controls">
+      <button type="button" aria-label="前の作品" onClick={() => rotateBy(-1)}>‹</button>
+      <div className="banner-dots" role="group" aria-label="バナーの表示位置">{items.map((item, index) => <button key={item.id} type="button" aria-label={`${index + 1} / ${items.length}：${item.title}を表示`} aria-pressed={activeItem.id === item.id} onClick={() => selectItem(item)}/>)}</div>
+      <button type="button" aria-label="次の作品" onClick={() => rotateBy(1)}>›</button>
+    </div>
   </section>;
 }
 
