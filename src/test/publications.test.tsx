@@ -43,17 +43,44 @@ it('keeps five cards mounted and cycles clockwise through all positions without 
   expect(depths[1]).toBeGreaterThan(depths[2]);
 });
 
-it('pauses for focus and hover, and offers manual selection', () => {
+it('resumes five seconds after selection even while hover and focus remain', () => {
   vi.useFakeTimers(); render(<FeaturedBanner items={items}/>);
   const banner = screen.getByRole('region', {name:'新着作品'});
-  fireEvent.mouseEnter(banner); act(() => vi.advanceTimersByTime(10000));
-  expect(centre().href).toBe(items[0].url);
-  fireEvent.focus(banner); fireEvent.mouseLeave(banner); act(() => vi.advanceTimersByTime(10000));
-  expect(centre().href).toBe(items[0].url);
+  fireEvent.mouseEnter(banner); fireEvent.focus(banner);
+  act(() => vi.advanceTimersByTime(4000));
   fireEvent.click(screen.getByRole('button', {name:'作品3を表示'}));
+  act(() => vi.advanceTimersByTime(4999));
   expect(centre().href).toBe(items[2].url);
-  fireEvent.blur(banner); act(() => vi.advanceTimersByTime(5000));
+  act(() => vi.advanceTimersByTime(1));
   expect(centre().href).toBe(items[3].url);
+  act(() => vi.advanceTimersByTime(5000));
+  expect(centre().href).toBe(items[4].url);
+});
+
+it('waits five seconds from the last wheel input, including input too small to turn a card', () => {
+  vi.useFakeTimers(); render(<FeaturedBanner items={items}/>);
+  const window = document.querySelector('.banner-window')!;
+  fireEvent.wheel(window, {deltaY:100});
+  expect(centre().href).toBe(items[1].url);
+  act(() => vi.advanceTimersByTime(4500));
+  fireEvent.wheel(window, {deltaY:1});
+  act(() => vi.advanceTimersByTime(4999));
+  expect(centre().href).toBe(items[1].url);
+  act(() => vi.advanceTimersByTime(1));
+  expect(centre().href).toBe(items[2].url);
+});
+
+it('waits until touch ends before resuming automatic rotation', () => {
+  vi.useFakeTimers(); render(<FeaturedBanner items={items}/>);
+  const window = document.querySelector('.banner-window')!;
+  fireEvent.touchStart(window, {touches:[{clientX:200,clientY:100}]});
+  act(() => vi.advanceTimersByTime(10000));
+  expect(centre().href).toBe(items[0].url);
+  fireEvent.touchEnd(window, {changedTouches:[{clientX:100,clientY:100}]});
+  act(() => vi.advanceTimersByTime(4999));
+  expect(centre().href).toBe(items[1].url);
+  act(() => vi.advanceTimersByTime(1));
+  expect(centre().href).toBe(items[2].url);
 });
 
 it('fills missing cards by repetition, including a rotating single work', () => {

@@ -27,10 +27,8 @@ function PublicationArtwork({item}: {item: Publication}) {
 
 export function FeaturedBanner({items}: {items: Publication[]}) {
   const [step, setStep] = useState(0);
-  const [hovered, setHovered] = useState(false);
-  const [focused, setFocused] = useState(false);
+  const [interaction, setInteraction] = useState(0);
   const [touching, setTouching] = useState(false);
-  const paused = hovered || focused || touching;
   const windowRef = useRef<HTMLDivElement>(null);
   const touchStart = useRef<{x: number; y: number} | null>(null);
   const suppressClickUntil = useRef(0);
@@ -44,10 +42,11 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
     return () => {preference.removeEventListener('change', change); document.removeEventListener('visibilitychange', visibility);};
   }, []);
   useEffect(() => {
-    if (!items.length || paused || hidden || reduced) return;
-    const timer = setInterval(() => setStep(current => (current + 1) % 5), 5000);
-    return () => clearInterval(timer);
-  }, [items.length, paused, hidden, reduced, step]);
+    if (!items.length || touching || hidden || reduced) return;
+    // Restart the full reading interval after the last input, even if hover/focus remains.
+    const timer = setTimeout(() => setStep(current => (current + 1) % 5), 5000);
+    return () => clearTimeout(timer);
+  }, [items.length, touching, hidden, reduced, step, interaction]);
   useEffect(() => {
     const window = windowRef.current;
     if (!window) return;
@@ -59,6 +58,7 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
       const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
       if (!delta) return;
       event.preventDefault();
+      setInteraction(current => current + 1);
       const now = performance.now();
       if (now - lastEvent > 180 || Math.sign(delta) !== Math.sign(accumulated)) accumulated = 0;
       lastEvent = now;
@@ -83,9 +83,10 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
     const distance = sequence.findIndex((_, offset) => sequence[(step + offset) % 5].id === item.id);
     if (distance >= 0) setStep(current => (current + distance) % 5);
   }
+  function recordInteraction() {setInteraction(current => current + 1);}
   return <section className="featured-banner" aria-label="新着作品" aria-roledescription="カルーセル"
-    onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-    onFocusCapture={() => setFocused(true)} onBlurCapture={event => {if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false);}}>
+    onMouseEnter={recordInteraction} onFocusCapture={recordInteraction}
+    onClickCapture={recordInteraction} onKeyDownCapture={recordInteraction}>
     <div className="banner-window" ref={windowRef}
       onTouchStart={event => {
         const touch = event.touches.length === 1 ? event.touches[0] : null;
