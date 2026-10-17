@@ -91,20 +91,32 @@ it('fills missing cards by repetition, including a rotating single work', () => 
   expect(cards().every(card => card.href === items[0].url)).toBe(true);
   const dots = () => [...document.querySelectorAll<HTMLButtonElement>('.banner-dots button')];
   const selectedDot = () => dots().findIndex(dot => dot.getAttribute('aria-pressed') === 'true');
-  expect(dots()).toHaveLength(5);
+  expect(dots()).toHaveLength(1);
   expect(selectedDot()).toBe(0);
   const initial = centre();
   advance(6200);
   expect(centre()).not.toBe(initial);
   expect(centre().href).toBe(items[0].url);
-  expect(selectedDot()).toBe(1);
-  fireEvent.click(dots()[4]);
+  expect(selectedDot()).toBe(0);
+  fireEvent.click(dots()[0]);
   advance(1200);
-  expect(centre()).toBe(cards()[4]);
-  expect(selectedDot()).toBe(4);
+  expect(centre()).toBe(cards()[1]);
+  expect(selectedDot()).toBe(0);
   view.rerender(<FeaturedBanner key="two" items={items.slice(0,2)}/>);
   expect(cards().map(card => card.href)).toEqual([items[0].url,items[1].url,items[0].url,items[1].url,items[0].url]);
-  expect(dots()).toHaveLength(5);
+  expect(dots()).toHaveLength(2);
+  for (let step = 1; step <= 5; step++) {
+    advance(step === 1 ? 6200 : 5000);
+    expect(selectedDot()).toBe((step % 5) % 2);
+    expect(dots().filter(dot => dot.getAttribute('aria-pressed') === 'true')).toHaveLength(1);
+  }
+  fireEvent.click(cards()[2]);
+  advance(1200);
+  expect(selectedDot()).toBe(0);
+  fireEvent.click(dots()[1]);
+  advance(1200);
+  expect(centre().href).toBe(items[1].url);
+  expect(selectedDot()).toBe(1);
 });
 
 it('brings the exact rear card forward without opening its link, including duplicated works', () => {
