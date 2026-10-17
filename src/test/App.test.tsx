@@ -361,3 +361,17 @@ describe('catalog interaction after the React migration', () => {
     expect(document.body.classList.contains('modal-open')).toBe(false);
   });
 });
+
+it('opens the mobile sidebar from an empty-space swipe and still closes from the backdrop', () => {
+  vi.stubGlobal('matchMedia', vi.fn((query: string) => ({matches:query === '(max-width: 760px)' || query === '(prefers-reduced-motion: reduce)',media:query,addEventListener:vi.fn(),removeEventListener:vi.fn()})));
+  history.replaceState(null, '', '/#home');
+  renderApp();
+  const main = screen.getByRole('main');
+  const point = (x: number) => ({identifier:1, clientX:x, clientY:300});
+  fireEvent.touchStart(main, {touches:[point(60)]});
+  fireEvent.touchMove(main, {touches:[point(170)]});
+  fireEvent.touchEnd(main, {touches:[], changedTouches:[point(170)]});
+  expect(screen.getByRole('button', {name:'メニューを閉じる'}).getAttribute('aria-expanded')).toBe('true');
+  fireEvent.click(screen.getByRole('button', {name:'メニューの外側を押して閉じる'}));
+  expect(screen.getByRole('button', {name:'メニューを開く'}).getAttribute('aria-expanded')).toBe('false');
+});

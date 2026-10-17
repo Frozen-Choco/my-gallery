@@ -12,6 +12,7 @@ import {PersonalPages} from './components/PersonalPages';
 import {ExampleCard} from './components/ExampleCard';
 import {CollectionOverview} from './components/CollectionOverview';
 import {useLiquidSidebar} from './components/useLiquidSidebar';
+import {useSidebarSwipe} from './components/useSidebarSwipe';
 import type {ExampleItem, ExamplePage, Model, ModelCatalog, ModelStatus, Page, SitePage, Selection, SortOrder} from './types';
 
 const modelPageSize = 40;
@@ -61,6 +62,8 @@ export function App() {
   const [mobile, setMobile] = useState(() => window.matchMedia('(max-width: 760px)').matches);
   const sidebarVisible = mobile ? sidebarOpen : desktopSidebarOpen;
   const menu = useLiquidSidebar(sidebarVisible, mobile, route);
+  const openSidebarFromSwipe = useCallback(() => setSidebarOpen(true), []);
+  useSidebarSwipe(mobile && !sidebarVisible && selection === null, openSidebarFromSwipe);
   function changeSidebar(open: boolean) {
     menu.refs.toggle.current?.focus({preventScroll:true});
     if (mobile) setSidebarOpen(open); else setDesktopSidebarOpen(open);
