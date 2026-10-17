@@ -108,7 +108,7 @@ it('brings the exact rear card forward without opening its link, including dupli
   expect(centre()).toBe(other);
 });
 
-it('handles wheel directions, small trackpad deltas and inertia without scrolling the page', () => {
+it('responds to rapid wheel turns and immediate reversals while coalescing event bursts', () => {
   vi.useFakeTimers(); render(<FeaturedBanner items={items}/>);
   const window = document.querySelector('.banner-window')!;
   expect(fireEvent.wheel(window, {deltaY:25})).toBe(false);
@@ -117,11 +117,18 @@ it('handles wheel directions, small trackpad deltas and inertia without scrollin
   expect(centre().href).toBe(items[1].url);
   fireEvent.wheel(window, {deltaY:200});
   expect(centre().href).toBe(items[1].url);
-  act(() => vi.advanceTimersByTime(1000));
+  expect(screen.getByRole('region', {name:'新着作品'}).dataset.wheelMotion).toBe('true');
+  act(() => vi.advanceTimersByTime(160));
+  fireEvent.wheel(window, {deltaY:100});
+  expect(centre().href).toBe(items[2].url);
+  // Reversing the wheel does not wait for the previous motion to finish.
   fireEvent.wheel(window, {deltaX:-100});
-  expect(centre().href).toBe(items[0].url);
+  expect(centre().href).toBe(items[1].url);
   expect(fireEvent.wheel(window, {deltaY:100,ctrlKey:true})).toBe(true);
-  expect(centre().href).toBe(items[0].url);
+  expect(centre().href).toBe(items[1].url);
+  act(() => vi.advanceTimersByTime(5000));
+  expect(centre().href).toBe(items[2].url);
+  expect(screen.getByRole('region', {name:'新着作品'}).dataset.wheelMotion).toBeUndefined();
 });
 
 it('swipes horizontally without following a link and leaves vertical touch scrolling alone', () => {

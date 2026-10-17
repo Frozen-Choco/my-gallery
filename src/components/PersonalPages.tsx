@@ -28,6 +28,7 @@ function PublicationArtwork({item}: {item: Publication}) {
 export function FeaturedBanner({items}: {items: Publication[]}) {
   const [step, setStep] = useState(0);
   const [interaction, setInteraction] = useState(0);
+  const [wheelMotion, setWheelMotion] = useState(false);
   const [touching, setTouching] = useState(false);
   const windowRef = useRef<HTMLDivElement>(null);
   const touchStart = useRef<{x: number; y: number} | null>(null);
@@ -44,7 +45,7 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
   useEffect(() => {
     if (!items.length || touching || hidden || reduced) return;
     // Restart the full reading interval after the last input, even if hover/focus remains.
-    const timer = setTimeout(() => setStep(current => (current + 1) % 5), 5000);
+    const timer = setTimeout(() => {setWheelMotion(false); setStep(current => (current + 1) % 5);}, 5000);
     return () => clearTimeout(timer);
   }, [items.length, touching, hidden, reduced, step, interaction]);
   useEffect(() => {
@@ -53,6 +54,7 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
     let accumulated = 0;
     let lastEvent = 0;
     let lastTurn = -Infinity;
+    let lastDirection = 0;
     const wheel = (event: WheelEvent) => {
       if (event.ctrlKey) return; // Keep trackpad pinch zoom available.
       const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
@@ -62,14 +64,16 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
       const now = performance.now();
       if (now - lastEvent > 180 || Math.sign(delta) !== Math.sign(accumulated)) accumulated = 0;
       lastEvent = now;
-      // One turn per gesture; inertia must not race through the carousel.
-      if (now - lastTurn < 950) return;
+      // Allow quick repeated turns, but coalesce a wheel burst; reversing stays responsive.
+      if (now - lastTurn < 160 && Math.sign(delta) === lastDirection) return;
       accumulated += delta * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.clientHeight : 1);
       if (Math.abs(accumulated) < 40) return;
       const direction = Math.sign(accumulated);
+      setWheelMotion(true);
       setStep(current => (current + direction + 5) % 5);
       accumulated = 0;
       lastTurn = now;
+      lastDirection = direction;
     };
     window.addEventListener('wheel', wheel, {passive:false});
     return () => window.removeEventListener('wheel', wheel);
@@ -83,12 +87,13 @@ export function FeaturedBanner({items}: {items: Publication[]}) {
     const distance = sequence.findIndex((_, offset) => sequence[(step + offset) % 5].id === item.id);
     if (distance >= 0) setStep(current => (current + distance) % 5);
   }
-  function recordInteraction() {setInteraction(current => current + 1);}
-  return <section className="featured-banner" aria-label="新着作品" aria-roledescription="カルーセル"
+  function recordInteraction() {setWheelMotion(false); setInteraction(current => current + 1);}
+  return <section className="featured-banner" data-wheel-motion={wheelMotion || undefined} aria-label="新着作品" aria-roledescription="カルーセル"
     onMouseEnter={recordInteraction} onFocusCapture={recordInteraction}
     onClickCapture={recordInteraction} onKeyDownCapture={recordInteraction}>
     <div className="banner-window" ref={windowRef}
       onTouchStart={event => {
+        setWheelMotion(false);
         const touch = event.touches.length === 1 ? event.touches[0] : null;
         touchStart.current = touch ? {x:touch.clientX, y:touch.clientY} : null;
         setTouching(!!touch);
